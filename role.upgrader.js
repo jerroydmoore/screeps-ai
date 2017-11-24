@@ -1,3 +1,4 @@
+const Roads = require('roads');
 const roleHarvester = require('role.harvester');
 
 module.exports = {
@@ -23,8 +24,13 @@ module.exports = {
             if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
             }
+            if (this.is(creep)) {
+                Roads.shouldBuildAt(creep)
+            }
         } else {
             roleHarvester.harvest(creep);
         }
+
+        
     }
 };

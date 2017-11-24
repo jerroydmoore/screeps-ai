@@ -1,10 +1,37 @@
 const roleHarvester = require('role.harvester');
+const Constants = require('constants');
 
 module.exports = {
     roleName: "Builder",
 
     is: function(creep) {
         return creep.name.startsWith(module.exports.roleName);
+    },
+    build: function (creep) {
+
+        let targetId = creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]],
+            target = undefined;
+        
+        if (targetId) {
+            target = Game.getObjectById(targetId);
+        } else {
+            target = creep.pos.findClosestByPath(FIND_MY_CONSTRUCTION_SITES);
+            //target = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
+        }
+
+        if (target) {
+            creep.busy = 1;
+            creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]] = target.id;
+            
+            let buildCode = creep.build(target); 
+            if(buildCode == ERR_NOT_IN_RANGE) {
+                creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+            } else if(buildCode === ERR_INVALID_TARGET) {
+                delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]]
+            }
+        } else if(targetId) {
+            delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]]
+        }
     },
     /** @param {Creep} creep **/
     run: function(creep) {
@@ -19,13 +46,7 @@ module.exports = {
         }
 
         if(creep.memory.full) {
-            var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
-            if(targets.length) {
-                creep.busy = 1;
-                if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#ffffff'}});
-                }
-            }
+            this.build(creep);
         } else {
             roleHarvester.harvest(creep);
         }

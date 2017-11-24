@@ -4,9 +4,12 @@ const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
 const roleBuilder = require('role.builder');
 const Spawner = require('spawner')
+const Phases = require('phases')
 
 module.exports.loop = function () {
 
+    let phaseNumber = Phases.getCurrentPhaseNumber(Game.spawns['Spawn1'].room);
+    console.log(`Game Loop ${Game.time}. Room Phase: ${phaseNumber}`)
     if(Game.time % 25 === 0) utils.gc();
 
     Spawner.run(Game.spawns['Spawn1']);

@@ -32,17 +32,18 @@ function spawnCreep(spawner, label, bodyParts) {
 
         let code = spawner[action](bodyParts, newName);
         Errors.check(spawner, action, code);
+    } else {
+        console.log(`Tried to spawn ${label} but cost ${cost} > ${spawner.energy} energy available`)
     }
 }
 
 module.exports = {
     run: function(spawner) {
 
-        let phaseNo = Phases.getPhase(spawner.room);
+        let phase = Phases.getCurrentPhaseInfo(spawner.room);
 
         if (Game.time % 100 === 0) {
-            let phase = Phase[phaseNo],
-                harvesters = _.filter(Game.creeps, (creep) => roleHarvester.is(creep)),
+            let harvesters = _.filter(Game.creeps, (creep) => roleHarvester.is(creep)),
                 builders =  _.filter(Game.creeps, (creep) => roleBuilder.is(creep)),
                 upgraders =  _.filter(Game.creeps, (creep) => roleUpgrader.is(creep));
             

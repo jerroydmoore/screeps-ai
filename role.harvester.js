@@ -1,3 +1,5 @@
+const Constants = require('constants');
+const Roads = require('roads');
 
 module.exports = {
     roleName: "Harvester",
@@ -8,16 +10,23 @@ module.exports = {
 
     harvest: function(creep) {
         creep.busy = 1;
-        let source;
-        if (creep.memory.sourceId) {
-            source = Game.getObjectById(creep.memory.sourceId);
+        let sourceId = creep.memory[Constants.MemoryKey[LOOK_SOURCES]],
+            source = undefined;
+        if (sourceId) {
+            source = Game.getObjectById(sourceId);
         } else {
-            source = creep.pos.findClosestByPath(FIND_SOURCES);
-            creep.memory.sourceId = source.id;
+            source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
         }
-        if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
+        if (source) {
+            creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
+            if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
+            }
+        } else {
+            console.log(`${creep} at ${creep.pos} could not find any available sources`);
+            creep.say('😰 No Srcs');
         }
+        
     },
 
     run: function(creep) {
@@ -28,11 +37,15 @@ module.exports = {
         }
         if(!creep.memory.full && creep.carry.energy == creep.carryCapacity) {
             creep.memory.full = 1;
-            creep.say('🔋 charging');
+            creep.say('🔋 charging  .');
         }
 
         if(!creep.memory.full) {
-            module.exports.harvest(creep);
+            creep.busy = 1;
+            this.harvest(creep);
+            if (this.is(creep)) {
+                Roads.shouldBuildAt(creep)
+            }
         }
         else {
             var targets = creep.room.find(FIND_STRUCTURES, {
