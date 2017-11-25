@@ -30,15 +30,16 @@ module.exports = {
                 console.log(`${creep} attempting to upgrade at a ${controller} not owned by us!`)
             }
             let code = creep.upgradeController(controller);
-            if (code == ERR_NOT_IN_RANGE) {
-                creep.moveTo(controller, {visualizePathStyle: {stroke: '#ffffff'}});
+            if (code === ERR_NOT_IN_RANGE) {
+                code = creep.moveTo(controller, {visualizePathStyle: {stroke: '#ffffff'}});
+                Errors.check(creep, 'moveTo', code);
+                if (code === OK && this.is(creep)) {
+                    Roads.shouldBuildAt(creep)
+                }
             } else if (code === ERR_NOT_OWNER) {
                 console.log(`${creep} is lost in ${creep.room}`)
             } else {
                 Errors.check(creep, 'upgradeController', code)
-            }
-            if (this.is(creep)) {
-                Roads.shouldBuildAt(creep)
             }
         } else {
             roleHarvester.harvest(creep);

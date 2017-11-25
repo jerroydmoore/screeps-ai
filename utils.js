@@ -11,6 +11,7 @@ module.exports = {
             obj = adjacenctPoints.find(filter);
         return obj;
     },
+    //isFreeTerrain: (pos) => !this.isWallTerrain(pos),
     isWallTerrain: function (pos) {
         return Game.map.getTerrainAt(pos) === 'wall';
     },
@@ -22,19 +23,23 @@ module.exports = {
     isPosValid: function (x, y) {
         return this.correctInvalidCoord(x) === x && this.correctInvalidCoord(y) === y;
     },
+    findFreeAdjecentPos: function (target) {
+        let pos = target.pos || target,
+            room = target.room || Game.rooms[pos.roomName],
+            obj = this.findNearby(room, pos, 1, (p) => p.type === 'terrain' && p.terrain !== 'wall' && p.x !== pos.x && p.y !== pos.y);
+
+        if (!obj) {
+            console.log(`findFreeAdjecentPos(${target}) could not find any free adjecent pos`);
+            return;
+        }
+        return new RoomPosition(obj.x, obj.y, room.name);
+    },
     findFreePosNearby: function (roomObj, range, howmany = 3, filter) {
         let pos = roomObj.pos,
             room = roomObj.room;
 
         if (this.isWallTerrain(pos)) {
-            // Choose a free adjacent spot
-            let obj = this.findNearby(room, pos, 1, (p) => p.type === 'terrain' && p.terrain !== 'wall')
-
-            if(!obj) {
-                console.log(`findFreePosNearby failed: ${roomObj.pos} is not free`);
-                return;
-            }
-            pos = new RoomPosition(obj.x, obj.y, room.name);
+            pos = this.findFreeAdjecentPos(roomObj);
         }
 
         // start in a corner and work across

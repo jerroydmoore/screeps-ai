@@ -39,7 +39,7 @@ function spawnCreep(spawner, label, availableBodyParts) {
     }
     
     label += Game.time;
-    console.log(`Spawning ${label} ` + JSON.stringify(bodyParts) + `cost ${cost}/${spawner.room.energyAvailable}`);
+    console.log(`Spawning ${label} ` + JSON.stringify(bodyParts) + ` cost ${cost}/${spawner.room.energyAvailable}`);
     let code = spawner[action](bodyParts, label);
     if (!Errors.check(spawner, action, code)) {
         utils.gc(); // garbage collect the recently deseased creep
@@ -64,9 +64,13 @@ module.exports = {
             // We can build things!
             spawner.memory.level = spawner.room.controller.level;
 
-            // Create network of roads from the spawned creep
-            // let sources = spawner.Game.find(FIND_SOURCES)
-            // Roads.connect(spawner.room, sources);
+            if (spawner.memory.setup < 2) {
+                // Create network of roads to common places
+                console.log('Create Network of Roads');
+                let sources = spawner.room.find(FIND_SOURCES)
+                Roads.connect(spawner, sources);
+                Roads.connect(spawner.room.controller, sources);
+            }
             StructExtensions.buildInRoom(spawner.room);
         }
 

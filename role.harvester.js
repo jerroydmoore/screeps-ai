@@ -22,7 +22,12 @@ module.exports = {
             creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
             if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
                 let code = creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
+                if (code === OK && this.is(creep)) {
+                    Roads.shouldBuildAt(creep)
+                }
                 //Errors.check(creep, 'moveTo', code);
+                // TODO if ERR_NO_PATH create more accessible Storage
+                // and have havesters grab from there.
             }
         } else {
             console.log(`${creep} at ${creep.pos} could not find any available sources`);
@@ -45,9 +50,6 @@ module.exports = {
         if (!creep.memory.full) {
             creep.busy = 1;
             this.harvest(creep);
-            if (this.is(creep)) {
-                Roads.shouldBuildAt(creep)
-            }
         } else {
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
