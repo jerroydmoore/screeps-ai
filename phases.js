@@ -8,21 +8,21 @@ let Phases = [
         minimumEnergyToSpawn: 250,
         Harvester: {
             count: 2,
-            parts: [WORK,CARRY,MOVE,MOVE]
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Upgrader: {
-            count: 2,
-            parts: [WORK,CARRY,MOVE,MOVE]
+            count: 4,
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Builder: {
             count: 4,
-            parts: [WORK,CARRY,MOVE,MOVE]
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
     }, {
         Level: 2,
         checkLevelPeriod: 500,
         SpawnPeriod: 50,
-        minimumEnergyToSpawn: 250,
+        minimumEnergyToSpawn: 600,
         Harvester: {
             count: 2,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
@@ -59,7 +59,7 @@ Phases.determineCurrentPhaseNumber = function (spawner) {
         // We don't need to check on every tick
         spawner.memory.phase = 1;
         let existingExt = StructExtensions.getMyStructs(spawner.room);
-        if (existingExt.length > 0) {
+        if (existingExt.length >= 5) {
             spawner.memory.phase = 2;
         }
         console.log(`Updated ${spawner} phase to ${spawner.memory.phase}`)
