@@ -34,7 +34,7 @@ module.exports = {
         }
         return new RoomPosition(obj.x, obj.y, room.name);
     },
-    findFreePosNearby: function (roomObj, range, howmany = 3, filter) {
+    findFreePosNearby: function (roomObj, range, howmany = 3) {
         let pos = roomObj.pos,
             room = roomObj.room;
 

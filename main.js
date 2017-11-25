@@ -39,4 +39,6 @@ module.exports.loop = function () {
         }
     }
     Roads.gc();
+    roleHarvester.gc();
+    roleBuilder.gc();
 }

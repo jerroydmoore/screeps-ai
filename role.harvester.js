@@ -3,11 +3,29 @@ const Constants = require('constants');
 const Roads = require('roads');
 
 const GIVEUP_SOURCE_AFTER_BLOCK_COUNT = 50;
+
+let _lowEnergyStructs = {};
+
 module.exports = {
     roleName: "Harvester",
 
     is: function(creep) {
         return creep.name.startsWith(module.exports.roleName);
+    },
+    findLowEnergyStructures: function (room) {
+        if (!_lowEnergyStructs[room.id]) {
+            _lowEnergyStructs[room.id] = room.find(FIND_MY_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
+                        structure.energy < structure.energyCapacity;
+                }
+            });
+            _lowEnergyStructs[room.id].forEach(x => {
+                x.harvesterCount = 0;
+                return x;
+            })
+        }
+        return _lowEnergyStructs[room.id];
     },
 
     harvest: function(creep) {
@@ -68,21 +86,39 @@ module.exports = {
             creep.busy = 1;
             this.harvest(creep);
         } else {
-            var targets = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
-                        structure.energy < structure.energyCapacity;
-                }
-            });
-            if(targets.length > 0) {
-                creep.busy = 1;
-                if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    let code = creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#00FF3C'}}); // green
-                    if(code === OK) {
-                        Roads.shouldBuildAt(creep)
-                    }
+            this.recharge(creep);
+        }
+    },
+    recharge: function (creep) {
+        let structure;
+        if (creep.memory.rechargeId) {
+            structure = Game.getObjectById(creep.memory.rechargeId);
+            if(structure.energy === structure.energyCapacity) {
+                structure = undefined;
+                delete creep.memory.rechargeId;
+            }
+        }
+        if (!structure) {
+            let targets = this.findLowEnergyStructures(creep.room);
+
+            if (!targets.length) return;
+
+            targets.sort((a, b) => a.harvesterCount - b.harvesterCount);
+            structure = targets[0];
+        }
+        if (structure) {
+            creep.memory.rechargeId = structure.id;
+            if(creep.transfer(structure, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                let code = creep.moveTo(structure, {visualizePathStyle: {stroke: '#00FF3C'}}); // green
+                if(code === OK) {
+                    creep.busy = 1;
+                    structure.harvesterCount++;
+                    Roads.shouldBuildAt(creep)
                 }
             }
         }
+    }, 
+    gc: function() {
+        _lowEnergyStructs = {};
     }
 };

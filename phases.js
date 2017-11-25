@@ -22,7 +22,7 @@ let Phases = [
         Level: 2,
         checkLevelPeriod: 500,
         SpawnPeriod: 50,
-        minimumEnergyToSpawn: 600,
+        minimumEnergyToSpawn: 550,
         Harvester: {
             count: 2,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
@@ -62,7 +62,9 @@ Phases.determineCurrentPhaseNumber = function (spawner) {
         if (existingExt.length >= 5) {
             spawner.memory.phase = 2;
         }
-        console.log(`Updated ${spawner} phase to ${spawner.memory.phase}`)
+        if (phaseNo !== spawner.memory.phase) {
+            console.log(`Updated ${spawner} phase to ${spawner.memory.phase}`)
+        }
     }
     // TODO: Rooms that don't have a controller?
     return spawner.memory.phase;
