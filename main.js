@@ -10,12 +10,17 @@ module.exports.loop = function () {
 
     let phaseNumber = Phases.getCurrentPhaseNumber(Game.spawns['Spawn1'].room);
     console.log(`Game Loop ${Game.time}. Room Phase: ${phaseNumber}`)
-    if(Game.time % 25 === 0) utils.gc();
 
     Spawner.run(Game.spawns['Spawn1']);
 
+    let x = 0
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
+
+        if (!creep.memory.origin) {
+            creep.memory.origin = creep.room.controller.id;
+        }
+
         if (roleBuilder.is(creep)) {
             roleBuilder.run(creep)
         }

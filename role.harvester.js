@@ -1,3 +1,4 @@
+const Errors = require('errors');
 const Constants = require('constants');
 const Roads = require('roads');
 
@@ -20,7 +21,8 @@ module.exports = {
         if (source) {
             creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
             if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
+                let code = creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
+                //Errors.check(creep, 'moveTo', code);
             }
         } else {
             console.log(`${creep} at ${creep.pos} could not find any available sources`);
@@ -31,23 +33,22 @@ module.exports = {
 
     run: function(creep) {
 
-        if(creep.memory.full && creep.carry.energy == 0) {
+        if (creep.memory.full && creep.carry.energy == 0) {
             delete creep.memory.full;
             creep.say('🔄 harvest');
         }
-        if(!creep.memory.full && creep.carry.energy == creep.carryCapacity) {
+        if (!creep.memory.full && creep.carry.energy == creep.carryCapacity) {
             creep.memory.full = 1;
-            creep.say('🔋 charging  .');
+            creep.say('🔋charging');
         }
 
-        if(!creep.memory.full) {
+        if (!creep.memory.full) {
             creep.busy = 1;
             this.harvest(creep);
             if (this.is(creep)) {
                 Roads.shouldBuildAt(creep)
             }
-        }
-        else {
+        } else {
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&

@@ -2,6 +2,8 @@ let Phases = [
     {}, // Controller level starts at 0
     {
         Level: 1,
+        SpawnPeriod: 25,
+        minimumEnergyToSpawn: 250,
         Harvester: {
             count: 4,
             parts: [WORK,CARRY,MOVE,MOVE]
@@ -17,19 +19,21 @@ let Phases = [
         [STRUCTURE_EXTENSION]: 0
     }, {
         Level: 2,
+        SpawnPeriod: 50,
+        minimumEnergyToSpawn: 300,
         Harvester: {
             count: 2,
-            parts: [WORK,CARRY,MOVE,MOVE]
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,MOVE,WORK,CARRY,MOVE]
         },
         Upgrader: {
             count: 4,
-            parts: [WORK,CARRY,MOVE,MOVE]
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,MOVE,WORK,CARRY,MOVE]
         },
         Builder: {
             count: 4,
-            parts: [WORK,CARRY,MOVE,MOVE]
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,MOVE,WORK,CARRY,MOVE]
         },
-        [STRUCTURE_EXTENSION]: 10 
+        [STRUCTURE_EXTENSION]: 5
     }
 ]
 

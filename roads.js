@@ -1,14 +1,14 @@
+const Errors = require('errors');
 Road = {
     shouldBuildAt: function(target) {
 
         if (this.needsRoad(target)) {
             target.say('🏗 road')
-            target.room.createConstructionSite(target, STRUCTURE_ROAD)
+            target.room.createConstructionSite(target, STRUCTURE_ROAD);
         }
     },
     needsRoad: function(target) {
         let objects = target.room.lookAt(target);
-        //let objects = target.pos.look();
         
         // look for a road. if we find one, when we don't need to build one.
         let res = objects.find(o => {
@@ -17,6 +17,17 @@ Road = {
         });
 
         return res === undefined;
+    },
+    connect: function(pos, targets) {
+        // Create construction sites from pos to all targets
+
+        targets.forEach((target) => {
+            let path = pos.findPathTo(target);
+            path.forEach((point) => {
+                let code = target.room.createConstructionSite(target, STRUCTURE_ROAD);
+                Errors.check(point, 'createRoad', code);
+            })
+        })
     }
 }
 

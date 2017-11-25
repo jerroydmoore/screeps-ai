@@ -20,10 +20,14 @@ exports.check = (obj, action, code) => {
     if (code !== 0) {
         let errMsg = errorCode[code] || "UNKNOWN"
         console.log(`${obj} could not perform ${action}: ${errMsg}`)
-        obj.room.visual.text(
-            `‼️ ${action}: ${errMsg}`,
-            Game.spawns['Spawn1'].pos.x + 1,
-            Game.spawns['Spawn1'].pos.y,
-            {align: 'left', opacity: 0.8});
+        if (obj && obj.room && obj.room.visual && obj.room.visual.room) {
+            obj.room.visual.text(``
+                `‼️ ${action}: ${errMsg}`,
+                obj.pos.x + 1,
+                obj.pos.y,
+                {align: 'left', opacity: 0.8});
+        }
+        return true;
     }
+    return false;
 }

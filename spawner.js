@@ -1,9 +1,11 @@
 const Errors = require('errors');
-
+const utils = require('utils');
 const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
 const roleBuilder = require('role.builder');
 const Phases = require('phases');
+const Roads = require('roads');
+const StructExtensions = require('struct-extensions');
 
 const BODYPART_COST = {
     [MOVE]: 50,
@@ -22,18 +24,26 @@ function bodyPartCost(bodyParts) {
     }, 0);
 }
 
-function spawnCreep(spawner, label, bodyParts) {
-    let cost = bodyPartCost(bodyParts);
-
-    if (cost < spawner.energy) {
-        let newName = label + Game.time;
-            action = 'spawnCreep';
-        console.log(`Spawning new ${label}: ${newName}`);
-
-        let code = spawner[action](bodyParts, newName);
-        Errors.check(spawner, action, code);
-    } else {
-        console.log(`Tried to spawn ${label} but cost ${cost} > ${spawner.energy} energy available`)
+function spawnCreep(spawner, label, availableBodyParts) {
+    let bodyParts = [],
+        action = 'spawnCreep',
+        cost = 0;
+    for(let i=0;i<availableBodyParts.length;i++) {
+        bodyParts.push(availableBodyParts[i]);
+        cost = bodyPartCost(bodyParts);
+        if(cost > spawner.room.energyAvailable) {
+            // we found our limit, remove the excess body part and spawn.
+            cost -= BODYPART_COST[bodyParts.pop()];
+            break;
+        }
+    }
+    
+    label += Game.time;
+    console.log(`Spawning ${label} ` + JSON.stringify(bodyParts) + `cost ${cost}/${spawner.room.energyAvailable}`);
+    let code = spawner[action](bodyParts, label);
+    if (!Errors.check(spawner, action, code)) {
+        utils.gc(); // garbage collect the recently deseased creep
+        return label;
     }
 }
 
@@ -42,17 +52,35 @@ module.exports = {
 
         let phase = Phases.getCurrentPhaseInfo(spawner.room);
 
-        if (Game.time % 100 === 0) {
+        if (!spawner.memory.setup) {
+            console.log(`${spawner} coming online in ${spawner.room}`);
+            spawner.memory.setup = 1; // only setup once
+            spawner.memory.level = spawner.room.controller.level;
+            
+            // create a creep immediately
+            spawnCreep(spawner, roleHarvester.roleName, phase.Harvester.parts)
+        } 
+        if(spawner.memory.level !== spawner.room.controller.level) {
+            // We can build things!
+            spawner.memory.level = spawner.room.controller.level;
+
+            // Create network of roads from the spawned creep
+            // let sources = spawner.Game.find(FIND_SOURCES)
+            // Roads.connect(spawner.room, sources);
+            StructExtensions.buildInRoom(spawner.room);
+        }
+
+        if (Game.time % phase.SpawnPeriod === 0 && spawner.room.energyAvailable >= phase.minimumEnergyToSpawn) {
             let harvesters = _.filter(Game.creeps, (creep) => roleHarvester.is(creep)),
                 builders =  _.filter(Game.creeps, (creep) => roleBuilder.is(creep)),
                 upgraders =  _.filter(Game.creeps, (creep) => roleUpgrader.is(creep));
             
             if (harvesters.length < phase.Harvester.count) {
                 spawnCreep(spawner, roleHarvester.roleName, phase.Harvester.parts)
-            } else if (upgraders.length < phase.Upgrader.count) {
-                spawnCreep(spawner, roleUpgrader.roleName, phase.Upgrader.parts)
             } else if (builders.length < phase.Builder.count) {
                 spawnCreep(spawner, roleBuilder.roleName, phase.Builder.parts)
+            } else if (upgraders.length < phase.Upgrader.count) {
+                spawnCreep(spawner, roleUpgrader.roleName, phase.Upgrader.parts)
             }
         }
     
