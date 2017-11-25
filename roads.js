@@ -1,16 +1,27 @@
 const Errors = require('errors');
 const utils = require('utils');
 
+function pruneBallots(ballots, expiration) {
+    return ballots.filter(t => t + expiration > Game.time);
+}
+const VOTE_EXPIRATION = 100;
+const ELECTION_THRESHOLD = 5;
 Road = {
+    buildAt(target) {
+        let pos = target.pos || target,
+            room = target.room || Game.rooms[pos.roomName];
+        return room.createConstructionSite(pos, STRUCTURE_ROAD);
+    },
     shouldBuildAt: function(target) {
 
         if (target.room.controller.level < 2) {
             console.log('It is not time to build roads yet');
             return false;
         }
-        if (!this.haveRoad(target) && this.voteForRoad(target)) {
-            target.say('🏗 road')
-            return target.room.createConstructionSite(target, STRUCTURE_ROAD);
+        if (!this.haveRoad(target) && this.voteForRoad(target, ELECTION_THRESHOLD, VOTE_EXPIRATION)) {
+            target.say('🏗 road');
+            console.log(`Creating road at ${target.pos}`)
+            return OK === this.buildAt(target)
         }
         return false;
     },
@@ -27,7 +38,7 @@ Road = {
 
         return res !== undefined;
     },
-    voteForRoad: function(target, voteThreshold = 5, expiration = 100) {
+    voteForRoad: function(target, voteThreshold, expiration) {
         if (!Memory.roads) Memory.roads = {};
         let pos = target.pos,
             addr = `${pos.roomName},${pos.x},${pos.y}`,
@@ -35,13 +46,14 @@ Road = {
         
         if (!ballots) {
             Memory.roads[addr] = [Game.time];
-            console.log(`${target} votes #${Memory.roads[addr].length} at ${target.pos}`);
+            //console.log(`${target} votes #${Memory.roads[addr].length} at ${target.pos}`);
             return false;
         }
-        Memory.roads[addr] = ballots.filter(t => t + expiration > Game.time);
+        Memory.roads[addr] = pruneBallots(ballots, expiration);
+        Memory.roads[addr] = Memory.roads[addr].map(x => Game.time); // when a candidate is voted on, all votes get refreshed
         Memory.roads[addr].push(Game.time);
         ballots = Memory.roads[addr];
-        console.log(`${target} votes #${ballots.length} at ${target.pos}`);
+        //console.log(`${target} votes #${ballots.length} at ${target.pos}`);
 
         if(ballots.length >= voteThreshold) {
             delete Memory.roads[addr]
@@ -63,10 +75,26 @@ Road = {
             path.forEach((_point) => {
                 let point = new RoomPosition(_point.x, _point.y, room.name);
                 if (this.haveRoad(point)) return;
-                let code = room.createConstructionSite(point, STRUCTURE_ROAD);
+                let code = this.buildAt(target)
                 Errors.check(point, 'createRoad', code);
             })
         })
+    },
+    gc: function() {
+        if (Memory.roads && Game.time % 1000 === 0) {
+            let howmanyAddr = 0, delAddr = 0, deltaBallots = 0;
+            for(let addr in Memory.roads) {
+                howmanyAddr++;
+                let len = Memory.roads[addr].length
+                Memory.roads[addr] = pruneBallots(Memory.roads[addr], ELECTION_THRESHOLD, VOTE_EXPIRATION);
+                deltaBallots += len - Memory.roads[addr].length;
+                if (Memory.roads[addr].length === 0) {
+                    delete Memory.roads[addr];
+                    delAddr++;
+                }
+            }
+            console.log(`Pruned road ${deltaBallots} ballots. Deleted ${delAddr}/${howmanyAddr} candidates`);
+        }
     }
 }
 

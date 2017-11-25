@@ -1,11 +1,13 @@
+const StructExtensions = require('struct-extensions')
 let Phases = [
     {}, // Controller level starts at 0
     {
         Level: 1,
+        checkLevelPeriod: 100,
         SpawnPeriod: 25,
         minimumEnergyToSpawn: 250,
         Harvester: {
-            count: 4,
+            count: 2,
             parts: [WORK,CARRY,MOVE,MOVE]
         },
         Upgrader: {
@@ -13,32 +15,31 @@ let Phases = [
             parts: [WORK,CARRY,MOVE,MOVE]
         },
         Builder: {
-            count: 0,
+            count: 4,
             parts: [WORK,CARRY,MOVE,MOVE]
         },
-        [STRUCTURE_EXTENSION]: 0
     }, {
         Level: 2,
+        checkLevelPeriod: 500,
         SpawnPeriod: 50,
-        minimumEnergyToSpawn: 300,
+        minimumEnergyToSpawn: 250,
         Harvester: {
             count: 2,
-            parts: [WORK,CARRY,MOVE,MOVE,CARRY,MOVE,WORK,CARRY,MOVE]
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Upgrader: {
             count: 4,
-            parts: [WORK,CARRY,MOVE,MOVE,CARRY,MOVE,WORK,CARRY,MOVE]
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Builder: {
             count: 4,
-            parts: [WORK,CARRY,MOVE,MOVE,CARRY,MOVE,WORK,CARRY,MOVE]
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
-        [STRUCTURE_EXTENSION]: 5
     }
 ]
 
-Phases.getCurrentPhaseInfo = function (room) {
-    let number = Phases.getCurrentPhaseNumber(room);
+Phases.getCurrentPhaseInfo = function (spawner) {
+    let number = Phases.getCurrentPhaseNumber(spawner);
     while (!Phases[number]) {
         number--;
         if (number < 0) {
@@ -47,11 +48,24 @@ Phases.getCurrentPhaseInfo = function (room) {
     }
     return Phases[number];
 }
-Phases.getCurrentPhaseNumber = function(room) {
-    let controller = room.controller,
-    phaseNo = controller.level || 2;
+Phases.getCurrentPhaseNumber = function(spawner) {
+    return spawner.memory.phase || 1;
+}
+Phases.determineCurrentPhaseNumber = function (spawner) {
+    let phaseNo = spawner.memory.phase || 1,
+        period = Phases[phaseNo].checkLevelPeriod;
+
+    if (Game.time % period === 0) {
+        // We don't need to check on every tick
+        spawner.memory.phase = 1;
+        let existingExt = StructExtensions.getMyStructs(spawner.room);
+        if (existingExt.length > 0) {
+            spawner.memory.phase = 2;
+        }
+        console.log(`Updated ${spawner} phase to ${spawner.memory.phase}`)
+    }
     // TODO: Rooms that don't have a controller?
-    return phaseNo;
+    return spawner.memory.phase;
 }
 
 module.exports = Phases;

@@ -2,7 +2,21 @@ const Errors = require('errors');
 const utils = require('utils');
 const Constants = require('constants');
 
+let _structs = {},
+    _sites = {};
 StructExtensions = {
+    getMyStructs: (room) => {
+        if (!_structs[room.id]) {
+            _structs[room.id] = room.find(FIND_MY_STRUCTURES, {filter: { structureType: STRUCTURE_EXTENSION }});
+        }
+        return _structs[room.id];
+    },
+    getMySites: (room) => {
+        if (!_sites[room.id]) {
+            _sites[room.id] = room.find(FIND_MY_CONSTRUCTION_SITES, {filter: { structureType: STRUCTURE_EXTENSION }});
+        }
+        return _sites[room.id];
+    },
     getDesiredNumberOfStructs: function(room) {
         let lvl = room.controller.level,
             info = Constants.RoomLevel[lvl],
@@ -19,8 +33,8 @@ StructExtensions = {
     buildInRoom: function (room) {
         console.log('Creating Extensions in ' + room)
         let sources = room.find(FIND_SOURCES),
-            existingExt = room.find(FIND_MY_STRUCTURES, {filter: { structureType: STRUCTURE_EXTENSION }}),
-            existingSites = room.find(FIND_MY_CONSTRUCTION_SITES, {filter: { structureType: STRUCTURE_EXTENSION }}),
+            existingExt = this.getMyStructs(room),
+            existingSites = this.getMySites(room),
             existing = existingExt.length + existingSites.length,
             desired = this.getDesiredNumberOfStructs(room),
             howmany = desired - existingExt.length - existingSites.length,

@@ -49,8 +49,9 @@ function spawnCreep(spawner, label, availableBodyParts) {
 
 module.exports = {
     run: function(spawner) {
+        Phases.determineCurrentPhaseNumber(spawner);
 
-        let phase = Phases.getCurrentPhaseInfo(spawner.room);
+        let phase = Phases.getCurrentPhaseInfo(spawner);
 
         if (!spawner.memory.setup) {
             console.log(`${spawner} coming online in ${spawner.room}`);

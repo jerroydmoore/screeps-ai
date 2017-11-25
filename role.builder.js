@@ -25,7 +25,8 @@ module.exports = {
             
             let buildCode = creep.build(target); 
             if(buildCode == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                creep.moveTo(target, {visualizePathStyle: {stroke: '#FF0000'}}); // red
+
             } else if(buildCode === ERR_INVALID_TARGET) {
                 delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]]
             }
@@ -41,6 +42,7 @@ module.exports = {
             creep.say('🔄 harvest');
         }
         if(!creep.memory.full && creep.carry.energy == creep.carryCapacity) {
+            delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
             creep.memory.full = 1;
             creep.say('🚧 build');
         }
