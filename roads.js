@@ -66,6 +66,8 @@ Road = {
     connect: function(target, destinations) {
         // Create construction sites from target to all destinations
 
+        if(!destinations || destinations.length === 0) return;
+
         let room = target.room || Game.rooms[target.roomName];
         target = utils.findFreeAdjecentPos(target);
         destinations.forEach((_dest) => {

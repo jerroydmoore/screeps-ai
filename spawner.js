@@ -6,6 +6,7 @@ const roleBuilder = require('role.builder');
 const Phases = require('phases');
 const Roads = require('roads');
 const StructExtensions = require('struct-extensions');
+const StructTowers = require('struct-towers');
 
 const BODYPART_COST = {
     [MOVE]: 50,
@@ -73,6 +74,7 @@ module.exports = {
                 Roads.connect(spawner.room.controller, sources);
             }
             StructExtensions.buildInRoom(spawner.room);
+            StructTowers.buildInRoom(spawner.room);
         }
 
         if (Game.time % phase.SpawnPeriod === 0 && spawner.room.energyAvailable >= phase.minimumEnergyToSpawn) {
