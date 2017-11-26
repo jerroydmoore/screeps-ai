@@ -1,5 +1,7 @@
+const Errors = require('errors')
 const roleHarvester = require('role.harvester');
 const Constants = require('constants');
+const CreepAction = require('creeps');
 
 function healthRatio() {
     //console.log(`${this} ratio ${this.hits/this.hitsMax} ${this.hits} ${this.hitsMax}`)
@@ -7,6 +9,7 @@ function healthRatio() {
     let res = this.hits/this.hitsMax;
     return res;
 }
+
 let _lowHealthStructs = {}
 module.exports = {
     roleName: "Builder",
@@ -55,22 +58,19 @@ module.exports = {
             creep.memory.repairId = structure.id;
 
             let code = creep.repair(structure);
-            if (code === OK) {
+            if (code === OK || code === ERR_NOT_ENOUGH_RESOURCES)  {
                 creep.busy = 1;
-                //console.log (`${creep} repairing ${structure} ${structure.pos} hp ${ratio}`)
             }
             if(code == ERR_NOT_IN_RANGE) {
-                //console.log (`${creep} to repair ${structure} ${structure.pos} hp ${ratio}`)
-                let code = creep.moveTo(structure);
-                if (code === OK) {
-                    creep.busy = 1;
-                }
+                CreepAction.moveTo(creep, structure, '#FF0000');
             } else if(code === ERR_INVALID_TARGET) {
+                console.log(`${creep} cannot repair ${structure}`)
                 delete creep.memory.repairId;
             }
-        }
-        if (!creep.busy) {
-            this.repair(creep, repairThreshold, fixedThreshold) // try again with a valid target
+            if (!creep.busy) {
+                console.log('find anothe repair ' + code)
+                this.repair(creep, repairThreshold, fixedThreshold) // try again with a valid target
+            }
         }
     },
     build: function (creep) {
@@ -91,10 +91,7 @@ module.exports = {
             if (code === OK) {
                 creep.busy = 1;
             } else if(code == ERR_NOT_IN_RANGE) {
-                let code = creep.moveTo(target, {visualizePathStyle: {stroke: '#FF0000'}}); // red
-                if(code === OK) {
-                    creep.busy = 1;
-                }
+                CreepAction.moveTo(creep, target);
             } else if(code === ERR_INVALID_TARGET) {
                 delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]]
             }
