@@ -77,7 +77,7 @@ Road = {
             path.forEach((_point) => {
                 let point = new RoomPosition(_point.x, _point.y, room.name);
                 if (this.haveRoad(point)) return;
-                let code = this.buildAt(target)
+                let code = this.buildAt(point)
                 Errors.check(point, 'createRoad', code);
             })
         })
