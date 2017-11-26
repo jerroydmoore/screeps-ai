@@ -33,7 +33,7 @@ module.exports = {
     },
 
     harvest: function(creep) {
-        creep.busy = 1;
+        
         let sourceId = creep.memory[Constants.MemoryKey[LOOK_SOURCES]],
             source = undefined;
         if (sourceId) {
@@ -44,9 +44,7 @@ module.exports = {
         if (source) {
             creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
             let code = creep.harvest(source);
-            if (code === OK) {
-                creep.busy = 1;
-            } else if (code === ERR_NOT_IN_RANGE) {
+            if (code === ERR_NOT_IN_RANGE) {
                 let code = CreepAction.moveTo(creep, source, '#ffaa00'); //orange
                 // What about using Storage???
             }
@@ -54,7 +52,7 @@ module.exports = {
             console.log(`${creep} at ${creep.pos} could not find any available sources`);
             creep.say('😰 No Srcs');
         }
-        
+        creep.busy = 1;
     },
 
     run: function(creep) {
@@ -70,7 +68,6 @@ module.exports = {
         }
 
         if (!creep.memory.full) {
-            creep.busy = 1;
             this.harvest(creep);
         } else {
             this.recharge(creep);

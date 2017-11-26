@@ -8,6 +8,7 @@ const Phases = require('phases')
 const Roads = require('roads');
 const Towers = require('struct-towers');
 const Extensions = require('struct-extensions');
+const CreepsUtil = require('creeps');
 
 module.exports.loop = function () {
     let phaseNumber = Phases.getCurrentPhaseNumber(Game.spawns['Spawn1']);
@@ -28,12 +29,50 @@ module.exports.loop = function () {
             creep.memory.origin = creep.room.controller.id;
         }
 
-        if (roleBuilder.is(creep)) {
+        // Check if we need to recharge.
+        if (!creep.memory.renew && creep.ticksToLive < 200 && creep.room.energyAvailable >= 600) {
+            let capacity = creep.room.energyCapacityAvailable,
+                energy = creep.room.energyAvailable,
+                parts = creep.body.map(x => x.type)
+                cost = CreepsUtil.bodyPartCost(parts),
+                renewCost = CreepsUtil.bodyPartRenewCost(parts)
+            
+            if (capacity > 700) capacity = 700; // cap it
+            let ratio = cost / capacity;
+            if (ratio > 0.8) {
+                // we want to keep this!
+                let spawn = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_SPAWN })
+                if (spawn) {
+                    creep.memory.renew = spawn.id;
+                    creep.say('⛑ Healing');
+                    console.log(`Renewing ${creep} renew cost ${renewCost} rebuild cost ${cost} capacity ${capacity} ratio ${ratio}`)
+                } else {
+                    creep.memory.renew = -1;
+                    console.log('no spawner found')
+                }
+            }
+        }
+        if (creep.memory.renew && creep.memory.renew !== -1) {
+            let spawn = Game.getObjectById(creep.memory.renew)
+            let code = spawn.renewCreep(creep);
+            if (code === OK) {
+                creep.busy = 1;
+            } else if (code === ERR_NOT_IN_RANGE) {
+                CreepsUtil.moveTo(creep, spawn, '#FFFFFF');
+            } else if (code === ERR_FULL || code === ERR_NOT_ENOUGH_ENERGY) {
+                delete creep.memory.renew
+            } else {
+                Errors.check(spawn, `renewCreep(${creep})`, code);
+                creep.memory.renew = -1;
+            }
+        }
+
+        if (!creep.busy && roleBuilder.is(creep)) {
             roleBuilder.run(creep)
             if (!creep.busy) roleHarvester.run(creep);
         }
 
-        if (roleHarvester.is(creep)) {
+        if (!creep.busy && roleHarvester.is(creep)) {
             roleHarvester.run(creep);
         }
 

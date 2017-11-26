@@ -7,46 +7,8 @@ const Phases = require('phases');
 const Roads = require('roads');
 const StructExtensions = require('struct-extensions');
 const StructTowers = require('struct-towers');
+const CreepsUtil = require('creeps');
 
-const BODYPART_COST = {
-    [MOVE]: 50,
-    [WORK]: 100,
-    [ATTACK]: 80,
-    [CARRY]: 50,
-    [HEAL]: 250,
-    [RANGED_ATTACK]: 150,
-    [TOUGH]: 10,
-    [CLAIM]: 600
-};
-
-function bodyPartCost(bodyParts) {
-    return bodyParts.reduce((acc, part) => {
-        return acc + BODYPART_COST[part];
-    }, 0);
-}
-
-function spawnCreep(spawner, label, availableBodyParts) {
-    let bodyParts = [],
-        action = 'spawnCreep',
-        cost = 0;
-    for(let i=0;i<availableBodyParts.length;i++) {
-        bodyParts.push(availableBodyParts[i]);
-        cost = bodyPartCost(bodyParts);
-        if(cost > spawner.room.energyAvailable) {
-            // we found our limit, remove the excess body part and spawn.
-            cost -= BODYPART_COST[bodyParts.pop()];
-            break;
-        }
-    }
-    
-    label += Game.time;
-    console.log(`Spawning ${label} ` + JSON.stringify(bodyParts) + ` cost ${cost}/${spawner.room.energyAvailable}`);
-    let code = spawner[action](bodyParts, label);
-    if (!Errors.check(spawner, action, code)) {
-        utils.gc(); // garbage collect the recently deseased creep
-        return label;
-    }
-}
 
 module.exports = {
     run: function(spawner) {
@@ -60,7 +22,7 @@ module.exports = {
             spawner.memory.level = spawner.room.controller.level;
             
             // create a creep immediately
-            spawnCreep(spawner, roleHarvester.roleName, phase.Harvester.parts)
+            CreepsUtil.spawn(spawner, roleHarvester.roleName, phase.Harvester.parts)
         } 
         if(spawner.memory.level !== spawner.room.controller.level) {
             // We can build things!
@@ -83,11 +45,11 @@ module.exports = {
                 upgraders =  _.filter(Game.creeps, (creep) => roleUpgrader.is(creep));
             
             if (harvesters.length < phase.Harvester.count) {
-                spawnCreep(spawner, roleHarvester.roleName, phase.Harvester.parts)
+                CreepsUtil.spawn(spawner, roleHarvester.roleName, phase.Harvester.parts)
             } else if (builders.length < phase.Builder.count) {
-                spawnCreep(spawner, roleBuilder.roleName, phase.Builder.parts)
+                CreepsUtil.spawn(spawner, roleBuilder.roleName, phase.Builder.parts)
             } else if (upgraders.length < phase.Upgrader.count) {
-                spawnCreep(spawner, roleUpgrader.roleName, phase.Upgrader.parts)
+                CreepsUtil.spawn(spawner, roleUpgrader.roleName, phase.Upgrader.parts)
             }
         }
     
