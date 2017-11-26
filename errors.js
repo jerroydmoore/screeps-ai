@@ -38,11 +38,13 @@ errorEmoji[-15] = "ERR_GCL_NOT_ENOUGH";
 exports.errorCode = errorCode
 exports.errorEmoji = errorEmoji
 exports.check = (obj, action, code) => {
-    if (code !== 0) {
+    if (code !== OK) {
         let errMsg = errorCode[code] || "UNKNOWN"
-        console.log(`${obj} could not perform ${action}: ${errMsg}`)
         if (obj.say) {
             obj.say(errorEmoji[code]);
+        }
+        if (code !== ERR_TIRED) {
+            console.log(`${obj} could not perform ${action}: ${errMsg}`)
         }
         return true;
     }

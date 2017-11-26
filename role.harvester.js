@@ -1,8 +1,8 @@
 const Errors = require('errors');
 const Constants = require('constants');
 const Roads = require('roads');
-
-const GIVEUP_SOURCE_AFTER_BLOCK_COUNT = 50;
+const CreepAction = require('creeps');
+const GIVEUP_SOURCE_AFTER_BLOCK_COUNT = 10;
 
 let _lowEnergyStructs = {};
 
@@ -13,15 +13,19 @@ module.exports = {
         return creep.name.startsWith(module.exports.roleName);
     },
     findLowEnergyStructures: function (room) {
+        if (!Memory.recharge) Memory.recharge = {};
         if (!_lowEnergyStructs[room.id]) {
             _lowEnergyStructs[room.id] = room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
+                    return (structure.structureType == STRUCTURE_EXTENSION
+                            || structure.structureType == STRUCTURE_SPAWN
+                            || structure.structureType == STRUCTURE_TOWER) &&
                         structure.energy < structure.energyCapacity;
                 }
             });
             _lowEnergyStructs[room.id].forEach(x => {
-                x.harvesterCount = 0;
+                x.harvesterCount = Memory.recharge[x.id] || 0;
+                if (x.harvesterCount === 0) Memory.recharge[x.id] = 0; // ensure the Memory location is allocated
                 return x;
             })
         }
@@ -39,29 +43,12 @@ module.exports = {
         }
         if (source) {
             creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
-            if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                let code = creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}}); //orange
-                if (code === OK) {
-                    if(creep.memory.blocked && --creep.memory.blocked >= 0) {
-                        delete creep.memory.blocked;
-                    }
-                    Roads.shouldBuildAt(creep)
-                }
-                if(code === ERR_NO_PATH) {
-                    if (!creep.memory.blocked) {
-                        creep.memory.blocked = 1;
-                    } else {
-                        console.log(`${creep} blocked ` + creep.memory.blocked)
-                        if(++creep.memory.blocked > GIVEUP_SOURCE_AFTER_BLOCK_COUNT) {
-                            // this is too busy. try a different source
-                            delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
-                            this.harvest(creep);
-                        }
-                    }
-                }
-                //Errors.check(creep, 'moveTo', code);
-                // TODO if ERR_NO_PATH create more accessible Storage
-                // and have havesters grab from there.
+            let code = creep.harvest(source);
+            if (code === OK) {
+                creep.busy = 1;
+            } else if (code === ERR_NOT_IN_RANGE) {
+                let code = CreepAction.moveTo(creep, source, '#ffaa00'); //orange
+                // What about using Storage???
             }
         } else {
             console.log(`${creep} at ${creep.pos} could not find any available sources`);
@@ -94,8 +81,10 @@ module.exports = {
         if (creep.memory.rechargeId) {
             structure = Game.getObjectById(creep.memory.rechargeId);
             if(structure.energy === structure.energyCapacity) {
+                delete Memory.recharge[structure.id];
                 structure = undefined;
                 delete creep.memory.rechargeId;
+                
             }
         }
         if (!structure) {
@@ -105,16 +94,16 @@ module.exports = {
 
             targets.sort((a, b) => a.harvesterCount - b.harvesterCount);
             structure = targets[0];
+            Memory.recharge[structure.id]++;
+            structure.harvesterCount++;
         }
         if (structure) {
             creep.memory.rechargeId = structure.id;
-            if(creep.transfer(structure, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                let code = creep.moveTo(structure, {visualizePathStyle: {stroke: '#00FF3C'}}); // green
-                if(code === OK) {
-                    creep.busy = 1;
-                    structure.harvesterCount++;
-                    Roads.shouldBuildAt(creep)
-                }
+            let code = creep.transfer(structure, RESOURCE_ENERGY)
+            if (code === OK) {
+                creep.busy = 1;
+            } else if (code === ERR_NOT_IN_RANGE) {
+                CreepAction.moveTo(creep, structure,'#00FF3C'); // green
             }
         }
     }, 

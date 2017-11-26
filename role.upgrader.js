@@ -2,6 +2,7 @@ const Constants = require('constants');
 const Errors = require('errors');
 const Roads = require('roads');
 const roleHarvester = require('role.harvester');
+const CreepAction = require('creeps');
 const utils = require('utils');
 
 module.exports = {
@@ -35,7 +36,7 @@ module.exports = {
 
         if(creep.memory.full) {
             delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
-            creep.busy = 1;
+
             let controller = creep.room.controller;
             if (controller.id !== creep.memory.origin) {
                 controller = Game.getObjectById(creep.memory.origin);
@@ -44,13 +45,10 @@ module.exports = {
                 console.log(`${creep} attempting to upgrade at a ${controller} not owned by us!`)
             }
             let code = creep.upgradeController(controller);
-            if (code === ERR_NOT_IN_RANGE) {
-                code = creep.moveTo(controller, {visualizePathStyle: {stroke: '#4800FF'}}); //blue
-
-                Errors.check(creep, 'moveTo', code);
-                if (code === OK && this.is(creep)) {
-                    Roads.shouldBuildAt(creep)
-                }
+            if (code === OK) {
+                creep.busy = 1;
+            } else if (code === ERR_NOT_IN_RANGE) {
+                CreepAction.moveTo(creep, controller, '#4800FF'); //blue
             } else if (code === ERR_NOT_OWNER) {
                 console.log(`${creep} is lost in ${creep.room}`)
             } else {
