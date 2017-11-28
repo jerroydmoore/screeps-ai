@@ -14,8 +14,9 @@ Road = {
     },
     shouldBuildAt: function(target) {
 
+        if (!target || !target.room || !target.room.controller) return
         if (target.room.controller.level < 2) {
-            console.log('It is not time to build roads yet');
+            // console.log('It is not time to build roads yet');
             return false;
         }
         if (!this.haveRoad(target) && this.voteForRoad(target, ELECTION_THRESHOLD, VOTE_EXPIRATION)) {
@@ -95,7 +96,7 @@ Road = {
                     delAddr++;
                 }
             }
-            console.log(`Pruned road ${deltaBallots} ballots. Deleted ${delAddr}/${howmanyAddr} candidates`);
+            //console.log(`Pruned road ${deltaBallots} ballots. Deleted ${delAddr}/${howmanyAddr} candidates`);
         }
     }
 }

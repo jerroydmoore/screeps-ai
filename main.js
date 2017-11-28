@@ -3,6 +3,7 @@ const utils = require('utils');
 const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
 const roleBuilder = require('role.builder');
+const roleScout = require('role.scout');
 const Spawner = require('spawner')
 const Phases = require('phases')
 const Roads = require('roads');
@@ -17,17 +18,41 @@ module.exports.loop = function () {
     let logger = console.log;
     console.log = (event) => logger(`#${Game.time}[${phaseNumber}] ${event}`);
 
-    Spawner.run(Game.spawns['Spawn1']);
-    let tower = Game.getObjectById('ed2129c137d0c81');
-    Towers.run(tower);
+    for(let roomName in Game.rooms) {
+        let room = Game.rooms[roomName],
+            structures = room.find(FIND_MY_STRUCTURES, {filter: (s) => {
+                return s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_TOWER
+            } });
+        
+        for(let name in structures) {
+            let s = structures[name];
+            if(s.structureType === STRUCTURE_SPAWN) {
+                Spawner.run(s);
+            } else if (s.structureType === STRUCTURE_TOWER) {
+                Towers.run(s);
+            }
+        }
+    }
+
+    
+    // Spawner.run(Game.spawns['Spawn1']);
+    if (! Memory.gcl) Memory.gcl = Game.gcl;
+    // let tower = Game.getObjectById('ed2129c137d0c81');
+    // Towers.run(tower);
 
     let x = 0
-    for(var name in Game.creeps) {
-        var creep = Game.creeps[name];
+    for(let name in Game.creeps) {
+        let creep = Game.creeps[name];
 
+        if ( creep.ticksToLive === 1) {
+            creep.say('☠️ dying')
+            console.log(`${creep} died naturally.`)
+        }
         if (!creep.memory.origin) {
             creep.memory.origin = creep.room.controller.id;
         }
+
+        if( creep.spawning) continue;
 
         // Check if we need to recharge.
         if (!creep.memory.renew && creep.ticksToLive < 200 && creep.room.energyAvailable >= 600) {
@@ -45,10 +70,10 @@ module.exports.loop = function () {
                 if (spawn) {
                     creep.memory.renew = spawn.id;
                     creep.say('⛑ Healing');
-                    console.log(`Renewing ${creep} renew cost ${renewCost} rebuild cost ${cost} capacity ${capacity} ratio ${ratio}`)
+                    //console.log(`Renewing ${creep} renew cost ${renewCost} rebuild cost ${cost} capacity ${capacity} ratio ${ratio}`)
                 } else {
                     creep.memory.renew = -1;
-                    console.log('no spawner found')
+                    console.log('cannot renew ${creep} in room ${creep.room}: no spawner found')
                 }
             }
         }
@@ -57,7 +82,7 @@ module.exports.loop = function () {
             let code = spawn.renewCreep(creep);
             if (code === OK) {
                 creep.busy = 1;
-            } else if (code === ERR_NOT_IN_RANGE) {
+            } else if (code === ERR_NOT_IN_RANGE || code === ERR_BUSY) {
                 CreepsUtil.moveTo(creep, spawn, '#FFFFFF');
             } else if (code === ERR_FULL || code === ERR_NOT_ENOUGH_ENERGY) {
                 delete creep.memory.renew
@@ -65,6 +90,11 @@ module.exports.loop = function () {
                 Errors.check(spawn, `renewCreep(${creep})`, code);
                 creep.memory.renew = -1;
             }
+        }
+
+        if (roleScout.is(creep)) {
+            roleScout.run(creep);
+            continue;
         }
 
         if (!creep.busy && roleBuilder.is(creep)) {

@@ -41,10 +41,12 @@ exports.check = (obj, action, code) => {
     if (code !== OK) {
         let errMsg = errorCode[code] || "UNKNOWN"
         if (obj.say) {
-            obj.say(errorEmoji[code]);
+            let msg = errorEmoji[code];
+            if (code === ERR_TIRED && obj.fatigue) msg += ' ' + obj.fatigue
+            obj.say(msg);
         }
         if (code !== ERR_TIRED) {
-            console.log(`${obj} could not perform ${action}: ${errMsg}`)
+            console.log(`${obj} ${obj.pos} could not perform ${action}: ${errMsg}`)
         }
         return true;
     }

@@ -11,13 +11,5 @@ class StructExtensions extends StructBase {
         this.minPlacementDistance = 2;
         this.avoidList = [AVOID_LIST[STRUCTURE_EXTENSION], AVOID_LIST[LOOK_SOURCES]];
     }
-    * getBuildingPointsOfInterests (room) {
-        let s = room.find(FIND_SOURCES);
-        console.log('generating controller')
-        for (let i=0;i<s.length;i++) {
-            console.log(`yielding ${s}`)
-            yield s[i];
-        }
-    }
 };
 module.exports = new StructExtensions();

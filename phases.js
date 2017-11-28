@@ -4,6 +4,7 @@ let Phases = [
     {
         Level: 1,
         checkLevelPeriod: 100,
+        SpawnScoutAfterSkippedPeriods: -1,
         SpawnPeriod: 25,
         minimumEnergyToSpawn: 250,
         Harvester: {
@@ -18,9 +19,16 @@ let Phases = [
             count: 4,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
+        Scout: {
+            count: 256,
+            // scouts are expected to go on roads
+            parts: [TOUGH, MOVE, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK ]
+
+        }
     }, {
         Level: 2,
         checkLevelPeriod: 500,
+        SpawnScoutAfterSkippedPeriods: 10,
         SpawnPeriod: 50,
         minimumEnergyToSpawn: 550,
         Harvester: {
@@ -35,6 +43,11 @@ let Phases = [
             count: 4,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
+        Scout: {
+            count: 256,
+            // scouts are expected to go on roads
+            parts: [TOUGH, MOVE, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK ]
+        }
     }
 ]
 

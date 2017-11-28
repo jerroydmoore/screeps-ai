@@ -14,19 +14,30 @@ const BODYPART_COST = {
 };
 
 module.exports = {
-    moveTo: function(creep, target, color) {
-        let opts, code;
+    suicide: function(creep) {
+        // unable to move?
+        creep.say('suicide');
+        console.log(`${creep} is suiciding`);
+        creep.busy = 1;
+        creep.suicide();
+    },
+    moveTo: function(creep, target, color, reusePath) {
+        let opts = {}, code;
 
         if (creep.busy) {
             return;
         }
         if (color) {
-            opts = { visualizePathStyle: { stroke: color, opacity: 1, lineStyle: 'dotted' } }
+            opts.visualizePathStyle = { stroke: color, opacity: 1, lineStyle: 'dotted' }
+        }
+        if (reusePath) {
+            opts.reusePath = reusePath;
         }
 
         code = creep.moveTo(target, opts);
         if (code === ERR_NO_PATH) {
             // ignore these. We can't cound blocked, because they re-path after 5 turns.
+            creep.say(Errors.errorEmoji[ERR_NO_PATH]);
             return OK; 
         }
         Errors.check(creep, `moveTo ${target}`, code);
@@ -37,6 +48,9 @@ module.exports = {
             }
             Roads.shouldBuildAt(creep)
             return OK;
+        } else if (code === ERR_NO_BODYPART) {
+            // unable to move?
+            this.suicide(creep);
         }
         return code;
     },

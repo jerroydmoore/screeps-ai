@@ -66,6 +66,9 @@ module.exports = {
             } else if(code === ERR_INVALID_TARGET) {
                 console.log(`${creep} cannot repair ${structure}`)
                 delete creep.memory.repairId;
+            } else if (code === ERR_NO_BODYPART) {
+                // unable to move?
+                this.suicide(creep);
             }
             if (!creep.busy) {
                 console.log('find anothe repair ' + code)
@@ -94,6 +97,9 @@ module.exports = {
                 CreepAction.moveTo(creep, target);
             } else if(code === ERR_INVALID_TARGET) {
                 delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]]
+            } else if (code === ERR_NO_BODYPART) {
+                // unable to build?
+                this.suicide(creep);
             }
         } else if(targetId) {
             delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]]

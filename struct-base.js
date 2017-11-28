@@ -31,9 +31,11 @@ class Struct {
             num = info[this.structureType + 'Range'];
         return num || 5;
     }
-    * getBuildingPointsOfInterests(room) {
-        console.log('generating controller')
-        yield room.controller;
+    * getBuildingPointsOfInterests (room) {
+        let s = room.find(FIND_SOURCES);
+        for (let i=0;i<s.length;i++) {
+            yield s[i];
+        }
     }
     buildInRoom (room) {
         let existingExt = this.getMyStructs(room),

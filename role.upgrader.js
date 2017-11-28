@@ -51,6 +51,9 @@ module.exports = {
                 CreepAction.moveTo(creep, controller, '#4800FF'); //blue
             } else if (code === ERR_NOT_OWNER) {
                 console.log(`${creep} is lost in ${creep.room}`)
+            } else if (code === ERR_NO_BODYPART) {
+                // unable to upgrade?
+                this.suicide(creep);
             } else {
                 Errors.check(creep, 'upgradeController', code)
             }

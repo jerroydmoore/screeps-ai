@@ -1,17 +1,27 @@
+const StructBase = require('struct-base');
 const Errors = require('errors');
 const utils = require('utils');
+const AVOID_LIST = utils.AVOID_LIST;
 const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
 const roleBuilder = require('role.builder');
+const roleScout = require('role.scout');
 const Phases = require('phases');
 const Roads = require('roads');
 const StructExtensions = require('struct-extensions');
 const StructTowers = require('struct-towers');
 const CreepsUtil = require('creeps');
 
+class StructSpawn extends StructBase {
+    constructor() {
+        super(STRUCTURE_SPAWN);
+        this.minFreeAdjSpaces = 8;
+        this.minPlacementDistance = 10;
+        let modifiedSource = Object.assign({}, AVOID_LIST[LOOK_SOURCES], {range: 5});
+        this.avoidList = [modifiedSource];
 
-module.exports = {
-    run: function(spawner) {
+    }
+    run (spawner) {
         Phases.determineCurrentPhaseNumber(spawner);
 
         let phase = Phases.getCurrentPhaseInfo(spawner);
@@ -44,13 +54,33 @@ module.exports = {
                 builders =  _.filter(Game.creeps, (creep) => roleBuilder.is(creep)),
                 upgraders =  _.filter(Game.creeps, (creep) => roleUpgrader.is(creep));
             
+            
+            // CreepsUtil.spawn(spawner, roleScout.roleName, phase.Scout.parts);
+
+
             if (harvesters.length < phase.Harvester.count) {
+                spawner.memory.skippedSpawnCount = 0;
                 CreepsUtil.spawn(spawner, roleHarvester.roleName, phase.Harvester.parts)
             } else if (builders.length < phase.Builder.count) {
+                spawner.memory.skippedSpawnCount = 0;
                 CreepsUtil.spawn(spawner, roleBuilder.roleName, phase.Builder.parts)
             } else if (upgraders.length < phase.Upgrader.count) {
+                spawner.memory.skippedSpawnCount = 0;
                 CreepsUtil.spawn(spawner, roleUpgrader.roleName, phase.Upgrader.parts)
             }
+            // } else {
+            //     if (phase.SpawnScoutAfterSkippedPeriods > 0) {
+            //         // spawner.memory.skippedSpawnCount = 9
+            //         if (! spawner.memory.skippedSpawnCount) {
+            //             spawner.memory.skippedSpawnCount = 0;
+            //         }
+            //         if ( ++spawner.memory.skippedSpawnCount % phase.SpawnScoutAfterSkippedPeriods === 0) {
+                        // CreepsUtil.spawn(spawner, roleScout.roleName, phase.Scout.parts);
+            //             spawner.memory.skippedSpawnCount = 0;
+            //         }
+            //     }
+            //     console.log(spawner + ' chance to spawn a scout. ' + `${spawner.memory.skippedSpawnCount}/${phase.SpawnScoutAfterSkippedPeriods}`)
+            // }
         }
     
         if(spawner.spawning) {
@@ -63,3 +93,5 @@ module.exports = {
         }
     }
 }
+
+module.exports = new StructSpawn();

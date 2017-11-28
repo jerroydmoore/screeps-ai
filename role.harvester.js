@@ -47,6 +47,11 @@ module.exports = {
             if (code === ERR_NOT_IN_RANGE) {
                 let code = CreepAction.moveTo(creep, source, '#ffaa00'); //orange
                 // What about using Storage???
+            } else if (code === ERR_NOT_ENOUGH_RESOURCES) {
+                delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
+            } else if (code === ERR_NO_BODYPART) {
+                // unable to harvest?
+                this.suicide(creep);
             }
         } else {
             console.log(`${creep} at ${creep.pos} could not find any available sources`);
@@ -99,6 +104,9 @@ module.exports = {
             let code = creep.transfer(structure, RESOURCE_ENERGY)
             if (code === OK) {
                 creep.busy = 1;
+            } else if (code === ERR_NO_BODYPART) {
+                // unable to energize?
+                this.suicide(creep);
             } else if (code === ERR_NOT_IN_RANGE) {
                 CreepAction.moveTo(creep, structure,'#00FF3C'); // green
             }
