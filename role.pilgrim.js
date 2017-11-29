@@ -2,75 +2,15 @@ const Errors = require('errors');
 const Constants = require('constants');
 const Roads = require('roads');
 const RoomUtils = require('rooms');
-const CreepUtils = require('creeps');
+const CreepsBase = require('creeps');
 const roleBuilder = require('role.builder');
 
-module.exports = {
-    roleName: "Pilgrim",
-    
-    is: function(creep) {
-        return creep.name.startsWith(module.exports.roleName);
-    },
-    moveToNextRoom: function (creep, hostiles=false) {
-        let target,
-            roomName = creep.pos.roomName;
-        
-        if (creep.memory.roomOrders && creep.memory.roomOrders.length) {
-            let dest = creep.memory.roomOrders[0];
-            if (dest.roomName !== roomName) {
-                // we've entered the next room, update orders
-                creep.memory.roomOrders.shift();
-                if (creep.memory.roomOrders.length) {
-                    console.log(`${creep} ${creep.pos} room changed ${dest.roomName} -> ${roomName} ` + JSON.stringify(creep.memory.roomOrders));
-                    dest = creep.memory.roomOrders[0];
-                } else {
-                    // we've entered our destination room, attack!
-                    delete creep.memory.roomorders;
-                    return this.regularOrders(creep);
-                }
-            }
-            target = dest.exit;
-        }
-        
-        if (! target && hostiles) {
-            // no orders, find a room with an enemy and go there.
-            for(let roomName in Memory.rooms) {
-                if (Memory.rooms[roomName].hasEnemy !== 1) continue;
-                
-                creep.memory.roomOrders = Game.map.findRoute(creep.room, roomName).map(x => { return {exit: x.exit, roomName: x.room}})
-                console.log('Game orders');
-                console.log(JSON.stringify(creep.memory.roomOrders))
-                target = creep.memory.roomOrders[0].exit;
-            }
-        }
-        if (target === undefined) {
-            // otherwise, find the closest unknown room, and go there.
-            let ref = Memory.rooms[roomName];
-            // console.log(creep + 'about to execute bfs')
-            
-            let path = RoomUtils.bfs(ref);
-            
-            let displayPath = path.map(x => { return {exit: RoomUtils.EXIT_NAME[x.exit], roomName: x.roomName} });
-            console.log(creep + ' bfs Path ' + JSON.stringify(displayPath));
-
-            creep.memory.roomOrders = path;
-            target = target = creep.memory.roomOrders[0].exit;
-        }
-        if (target) {
-            let dest = creep.pos.findClosestByPath(target);
-            // console.log(`${creep} ${creep.pos} scouting to ${dest} ${RoomUtils.EXIT_NAME[target]}(${target})`)
-
-            let code = CreepUtils.moveTo(creep, dest, '#5d80b2', 50);
-            Errors.check(creep, `moveTo(${dest})`, code);
-            if (code === ERR_INVALID_TARGET) {
-                delete creep.memory.roomOrders
-            }
-            
-        } else {
-            console.log(`${creep} could not find an exit/target`);
-        }
-    },
-    run: function (creep) {
+const role = "Pilgrim";
+class RolePilgrim extends CreepsBase {
+    constructor() {
+        super(role);
+    }
+    run (creep) {
 
         let roomName = creep.pos.roomName;
         if (! Memory.rooms) Memory.rooms = {}
@@ -121,7 +61,7 @@ module.exports = {
             creep.memory.prevRoom = roomName;
         }
         this.regularOrders(creep);
-    },
+    }
     regularOrders(creep) {
         if (creep.memory.claimed === 2) {
             // spawner built, now become a builder and build it
@@ -136,18 +76,22 @@ module.exports = {
                     creep.memory.claimed = 1;
                     
                 } else if (code === ERR_NOT_IN_RANGE) {
-                    CreepUtils.moveTo(creep, controller, '#b99cfb')
+                    this.moveTo(creep, controller, '#b99cfb')
                     creep.busy = 1;
                 } else if (code === ERR_GCL_NOT_ENOUGH) {
                     console.log('Not enough GCL to claim a room');
-                    CreepUtils.suicide(creep);
+                    this.suicide(creep);
                 } else {
                     Errors.check(creep, 'claimController', code);
                 }
             }
         } else if (! creep.busy) {
             // then pick a direction, and exit that way.
-            this.moveToNextRoom(creep);
+            if (! this.moveToNextRoom(creep, false)) {
+                this.regularOrders(creep);
+            }
         }
     }
 }
+
+module.exports = new RolePilgrim();

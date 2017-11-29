@@ -1,7 +1,7 @@
 const Errors = require('errors')
 const roleHarvester = require('role.harvester');
 const Constants = require('constants');
-const CreepsUtils = require('creeps');
+const CreepsBase = require('creeps');
 
 function healthRatio() {
     //console.log(`${this} ratio ${this.hits/this.hitsMax} ${this.hits} ${this.hitsMax}`)
@@ -11,13 +11,14 @@ function healthRatio() {
 }
 
 let _lowHealthStructs = {}
-module.exports = {
-    roleName: "Builder",
+const role = "Builder";
 
-    is: function(creep) {
-        return creep.name.startsWith(module.exports.roleName);
-    },
-    findLowHealthStructures: function(room, healthRatioThreshold) {
+class RoleBuilder extends CreepsBase {
+    constructor() {
+        super(role);
+    }
+    
+    /* static */ findLowHealthStructures (room, healthRatioThreshold) {
         if (!_lowHealthStructs[room.id]) {
             _lowHealthStructs[room.id] = room.find(FIND_STRUCTURES, {
                 filter: (s) => {
@@ -31,8 +32,8 @@ module.exports = {
         }
         _lowHealthStructs[room.id].sort((a,b) => a.healthRatio - b.healthRatio);
         return _lowHealthStructs[room.id];
-    },
-    repair: function (creep, repairThreshold=0.2, fixedThreshold=0.95) {
+    }
+    repair (creep, repairThreshold=0.2, fixedThreshold=0.95) {
         let repairId = creep.memory.repairId,
             structure = undefined;
         let ratio;
@@ -62,7 +63,7 @@ module.exports = {
                 creep.busy = 1;
             }
             if(code == ERR_NOT_IN_RANGE) {
-                CreepsUtils.moveTo(creep, structure, '#FF0000');
+                this.moveTo(creep, structure, '#FF0000');
             } else if(code === ERR_INVALID_TARGET) {
                 console.log(`${creep} cannot repair ${structure}`)
                 delete creep.memory.repairId;
@@ -75,8 +76,8 @@ module.exports = {
                 this.repair(creep, repairThreshold, fixedThreshold) // try again with a valid target
             }
         }
-    },
-    build: function (creep) {
+    }
+    build (creep) {
 
         let targetId = creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]],
             target = undefined;
@@ -94,7 +95,7 @@ module.exports = {
             if (code === OK) {
                 creep.busy = 1;
             } else if(code == ERR_NOT_IN_RANGE) {
-                CreepsUtils.moveTo(creep, target, '#ffe56d');
+                this.moveTo(creep, target, '#ffe56d');
             } else if(code === ERR_INVALID_TARGET) {
                 delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]]
             } else if (code === ERR_NO_BODYPART) {
@@ -104,9 +105,11 @@ module.exports = {
         } else if(targetId) {
             delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]]
         }
-    },
+    }
     
-    run: function(creep) {
+    run (creep) {
+
+        super.run(creep);
 
         if(creep.memory.full && creep.carry.energy == 0) {
             delete creep.memory.full;
@@ -127,8 +130,10 @@ module.exports = {
         } else {
             roleHarvester.harvest(creep);
         }
-    },
-    gc: function() {
+    }
+    gc () {
         _lowHealthStructs = {};
     }
 };
+
+module.exports = new RoleBuilder();

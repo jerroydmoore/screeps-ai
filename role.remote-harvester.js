@@ -6,12 +6,13 @@ const GIVEUP_SOURCE_AFTER_BLOCK_COUNT = 10;
 
 let _lowEnergyStructs = {};
 
-const role = "Harvester";
-class RoleHarvester extends CreepsBase {
-    constructor() {
-        super(role);
-    }
-    /* static */ findLowEnergyStructures (room) {
+module.exports = {
+    roleName: "Harvester",
+
+    is: function(creep) {
+        return creep.name.startsWith(module.exports.roleName);
+    },
+    findLowEnergyStructures: function (room) {
         if (!Memory.recharge) Memory.recharge = {};
         if (!_lowEnergyStructs[room.id]) {
             _lowEnergyStructs[room.id] = room.find(FIND_MY_STRUCTURES, {
@@ -29,11 +30,37 @@ class RoleHarvester extends CreepsBase {
             })
         }
         return _lowEnergyStructs[room.id];
-    }
+    },
 
-    run (creep) {
+    harvest: function(creep) {
 
-        super.run(creep);
+        let sourceId = creep.memory[Constants.MemoryKey[LOOK_SOURCES]],
+            source = undefined;
+        if (sourceId) {
+            source = Game.getObjectById(sourceId);
+        } else {
+            source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+        }
+        if (source) {
+            creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
+            let code = creep.harvest(source);
+            if (code === ERR_NOT_IN_RANGE) {
+                let code = this.moveTo(creep, source, '#ffaa00'); //orange
+                // What about using Storage???
+            } else if (code === ERR_NOT_ENOUGH_RESOURCES) {
+                delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
+            } else if (code === ERR_NO_BODYPART) {
+                // unable to harvest?
+                this.suicide(creep);
+            }
+        } else {
+            console.log(`${creep} at ${creep.pos} could not find any available sources`);
+            creep.say('😰 No Srcs');
+        }
+        creep.busy = 1;
+    },
+
+    run: function(creep) {
 
         if (creep.memory.full && creep.carry.energy == 0) {
             delete creep.memory.full;
@@ -51,8 +78,8 @@ class RoleHarvester extends CreepsBase {
         } else {
             this.recharge(creep);
         }
-    }
-    recharge (creep) {
+    },
+    recharge: function (creep) {
         let structure;
         if (creep.memory.rechargeId) {
             structure = Game.getObjectById(creep.memory.rechargeId);
@@ -95,10 +122,8 @@ class RoleHarvester extends CreepsBase {
                 this.moveTo(creep, structure,'#00FF3C'); // green
             }
         }
-    }
-    gc () {
+    }, 
+    gc: function() {
         _lowEnergyStructs = {};
     }
 };
-
-module.exports = new RoleHarvester();

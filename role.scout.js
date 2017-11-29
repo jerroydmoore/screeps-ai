@@ -2,17 +2,16 @@ const Errors = require('errors');
 const Constants = require('constants');
 const Roads = require('roads');
 const RoomUtils = require('rooms');
-const CreepsUtils = require('creeps');
+const CreepsBase = require('creeps');
 
-module.exports = {
-    roleName: "Scout",
-    
-    is: function(creep) {
-        return creep.name.startsWith(module.exports.roleName);
-    },
-    attack: function (creep) {
+const role = "Scout";
+class RoleScout extends CreepsBase {
+    constructor() {
+        super(role);
+    }
+    attack (creep) {
         let closestHostile = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES);
-        if(closestHostile) {
+        if (closestHostile) {
             Memory.rooms[creep.pos.roomName].hasEnemy = 1;
             let code = creep.attack(closestHostile);
             if (code === OK) {
@@ -20,7 +19,7 @@ module.exports = {
                 creep.say('😡 attack!')
                 return code;
             } else if (code === ERR_NOT_IN_RANGE) {
-                CreepsUtils.moveTo(creep, closestHostile);
+                this.moveTo(creep, closestHostile);
                 creep.busy = 1;
                 return code;
             } else {
@@ -37,7 +36,7 @@ module.exports = {
                 creep.say('😡 attack!')
                 return code;
             } else if (code === ERR_NOT_IN_RANGE) {
-                CreepsUtils.moveTo(creep, closestHostile);
+                this.moveTo(creep, closestHostile);
                 creep.busy = 1;
                 return code;
             } else {
@@ -45,67 +44,8 @@ module.exports = {
             }
         }
         Memory.rooms[creep.pos.roomName].hasEnemy = 0;
-    },
-    moveToNextRoom: function (creep, hostiles=true) {
-        let target,
-            roomName = creep.pos.roomName;
-        
-        if (creep.memory.roomOrders && creep.memory.roomOrders.length) {
-            let dest = creep.memory.roomOrders[0];
-            if (dest.roomName !== roomName) {
-                // we've entered the next room, update orders
-                creep.memory.roomOrders.shift();
-                if (creep.memory.roomOrders.length) {
-                    console.log(`${creep} ${creep.pos} room changed ${dest.roomName} -> ${roomName} ` + JSON.stringify(creep.memory.roomOrders));
-                    dest = creep.memory.roomOrders[0];
-                } else {
-                    // we've entered our destination room, attack!
-                    delete creep.memory.roomorders;
-                    return this.regularOrders(creep);
-                }
-            }
-            target = dest.exit;
-        }
-        
-        if (! target && hostiles) {
-            // no orders, find a room with an enemy and go there.
-            for(let roomName in Memory.rooms) {
-                if (Memory.rooms[roomName].hasEnemy !== 1) continue;
-                
-                creep.memory.roomOrders = Game.map.findRoute(creep.room, roomName).map(x => { return {exit: x.exit, roomName: x.room}})
-                console.log('Game orders');
-                console.log(JSON.stringify(creep.memory.roomOrders))
-                target = creep.memory.roomOrders[0].exit;
-            }
-        }
-        if (target === undefined) {
-            // otherwise, find the closest unknown room, and go there.
-            let ref = Memory.rooms[roomName];
-            // console.log(creep + 'about to execute bfs')
-            
-            let path = RoomUtils.bfs(ref);
-            
-            let displayPath = path.map(x => { return {exit: RoomUtils.EXIT_NAME[x.exit], roomName: x.roomName} });
-            console.log(creep + ' bfs Path ' + JSON.stringify(displayPath));
-
-            creep.memory.roomOrders = path;
-            target = target = creep.memory.roomOrders[0].exit;
-        }
-        if (target) {
-            let dest = creep.pos.findClosestByPath(target);
-            // console.log(`${creep} ${creep.pos} scouting to ${dest} ${RoomUtils.EXIT_NAME[target]}(${target})`)
-
-            let code = CreepsUtils.moveTo(creep, dest, '#5d80b2', 50);
-            Errors.check(creep, `moveTo(${dest})`, code);
-            if (code === ERR_INVALID_TARGET) {
-                delete creep.memory.roomOrders
-            }
-            
-        } else {
-            console.log(`${creep} could not find an exit/target`);
-        }
-    },
-    run: function (creep) {
+    }
+    run (creep) {
 // return;
 
         let roomName = creep.pos.roomName;
@@ -157,14 +97,18 @@ module.exports = {
             creep.memory.prevRoom = roomName;
         }
         this.regularOrders(creep);
-    },
+    }
     regularOrders(creep) {
         // attack something in this room.
         this.attack(creep);
 
         // then pick a direction, and exit that way.
         if (! creep.busy) {
-            this.moveToNextRoom(creep);
+            if (! this.moveToNextRoom(creep, true)) {
+                this.regularOrders(creep);
+            }
         }
     }
 }
+
+module.exports = new RoleScout();

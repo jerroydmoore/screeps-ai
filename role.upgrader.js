@@ -2,17 +2,18 @@ const Constants = require('constants');
 const Errors = require('errors');
 const Roads = require('roads');
 const roleHarvester = require('role.harvester');
-const CreepsUtils = require('creeps');
+const CreepsBase = require('creeps');
 const utils = require('utils');
 
-module.exports = {
-    roleName: "Upgrader",
+const role = "Upgrader";
+class RoleUpgrader extends CreepsBase {
+    constructor() {
+        super(role);
+    }
+    
+    run (creep) {
 
-    is: function(creep) {
-        return creep.name.startsWith(module.exports.roleName);
-    },
-    /** @param {Creep} creep **/
-    run: function(creep) {
+        super.run(creep);
 
         // if we just spawned. Find the closest source to the controller and remember it.
         if (! creep.memory[Constants.MemoryKey[LOOK_SOURCES]] && !creep.memory.full) {
@@ -48,7 +49,7 @@ module.exports = {
             if (code === OK) {
                 creep.busy = 1;
             } else if (code === ERR_NOT_IN_RANGE) {
-                CreepsUtils.moveTo(creep, controller, '#4800FF'); //blue
+                this.moveTo(creep, controller, '#4800FF'); //blue
             } else if (code === ERR_NOT_OWNER) {
                 console.log(`${creep} is lost in ${creep.room}`)
             } else if (code === ERR_NO_BODYPART) {
@@ -60,7 +61,7 @@ module.exports = {
         } else {
             roleHarvester.harvest(creep);
         }
-
-        
     }
 };
+
+module.exports = new RoleUpgrader();

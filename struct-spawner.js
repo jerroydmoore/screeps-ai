@@ -11,7 +11,6 @@ const Phases = require('phases');
 const Roads = require('roads');
 const StructExtensions = require('struct-extensions');
 const StructTowers = require('struct-towers');
-const CreepsUtils = require('creeps');
 
 
 class StructSpawners extends StructBase {
@@ -55,7 +54,7 @@ class StructSpawners extends StructBase {
             spawner.memory.level = spawner.room.controller.level;
             
             // create a creep immediately
-            CreepsUtils.spawn(spawner, roleHarvester.roleName, phase.Harvester.parts)
+            CreepsBase.spawn(spawner, roleHarvester.roleName, phase.Harvester.parts)
         } 
         if(spawner.memory.level !== spawner.room.controller.level) {
             // We can build things!
@@ -83,19 +82,19 @@ class StructSpawners extends StructBase {
 
             if (harvesters.length < phase.Harvester.count) {
                 spawner.memory.skippedSpawnCount = 0;
-                CreepsUtils.spawn(spawner, roleHarvester.roleName, phase.Harvester.parts)
+                roleHarvester.spawn(spawner)
             } else if (builders.length < phase.Builder.count) {
                 spawner.memory.skippedSpawnCount = 0;
-                CreepsUtils.spawn(spawner, roleBuilder.roleName, phase.Builder.parts)
+                roleBuilder.spawn(spawner)
             } else if (upgraders.length < phase.Upgrader.count) {
                 spawner.memory.skippedSpawnCount = 0;
-                CreepsUtils.spawn(spawner, roleUpgrader.roleName, phase.Upgrader.parts)
+                roleUpgrader.spawn(spawner)
             } else {
                 // determine if gcl.level > 1, then spawn one.
                 if (Game.gcl.level !== Memory.gcl && spawner.room.energyAvailable >= 900) {
 
                     spawner.memory.skippedSpawnCount = 0;
-                    let code = CreepsUtils.spawn(spawner, rolePilgrim.roleName, phase.Pilgrim.parts)
+                    let code = rolePilgrim.spawn(spawner)
                     if (code === OK) {
                         Memory.gcl = Game.gcl.level;
                     }

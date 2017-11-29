@@ -28,7 +28,11 @@ let Phases = [
         Pilgrim: {
             count: 1,
             parts: [MOVE, CLAIM, MOVE, WORK]
-        }
+        },
+        RemoteHarvester: {
+            count: 6,
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
+        },
     }, {
         Level: 2,
         checkLevelPeriod: 500,
@@ -55,7 +59,11 @@ let Phases = [
         Pilgrim: {
             count: 1,
             parts: [MOVE, MOVE, CLAIM]
-        }
+        },
+        RemoteHarvester: {
+            count: 6,
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
+        },
     }
 ]
 
