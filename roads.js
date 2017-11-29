@@ -70,13 +70,14 @@ Road = {
         if(!destinations || destinations.length === 0) return;
 
         let room = target.room || Game.rooms[target.roomName];
-        target = utils.findFreeAdjecentPos(target);
-        destinations.forEach((_dest) => {
-            let dest = utils.findFreeAdjecentPos(_dest),
-                path = target.findPathTo(dest);
+        //target = utils.findFreeAdjecentPos(target);
+        destinations.forEach((pos) => {
+            // let pos = utils.findFreeAdjecentPos(_pos),
+            //     path = target.findPathTo(pos);
+            let res = PathFinder.search(target, {pos, range: 1}, {maxRooms: 1});
 
-            path.forEach((_point) => {
-                let point = new RoomPosition(_point.x, _point.y, room.name);
+            path.forEach((point) => {
+                //let point = new RoomPosition(_point.x, _point.y, room.name);
                 if (this.haveRoad(point)) return;
                 let code = this.buildAt(point)
                 Errors.check(point, 'createRoad', code);
