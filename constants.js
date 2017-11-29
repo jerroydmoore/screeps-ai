@@ -4,7 +4,7 @@ module.exports = {
         [LOOK_SOURCES]: 'sId'
     },
     RoomLevel: {
-        0: { spawnRange: 10 },
+        0: { spawnRange: 4 },
         1: { spawnRange: 10 },
         2: { spawnRange: 10, extensionRange: 5 },
         3: { spawnRange: 10, extensionRange: 5,  towerRange: 5 },

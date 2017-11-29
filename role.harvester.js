@@ -1,7 +1,7 @@
 const Errors = require('errors');
 const Constants = require('constants');
 const Roads = require('roads');
-const CreepAction = require('creeps');
+const CreepsUtils = require('creeps');
 const GIVEUP_SOURCE_AFTER_BLOCK_COUNT = 10;
 
 let _lowEnergyStructs = {};
@@ -33,7 +33,7 @@ module.exports = {
     },
 
     harvest: function(creep) {
-        
+
         let sourceId = creep.memory[Constants.MemoryKey[LOOK_SOURCES]],
             source = undefined;
         if (sourceId) {
@@ -45,7 +45,7 @@ module.exports = {
             creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
             let code = creep.harvest(source);
             if (code === ERR_NOT_IN_RANGE) {
-                let code = CreepAction.moveTo(creep, source, '#ffaa00'); //orange
+                let code = CreepsUtils.moveTo(creep, source, '#ffaa00'); //orange
                 // What about using Storage???
             } else if (code === ERR_NOT_ENOUGH_RESOURCES) {
                 delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
@@ -65,6 +65,7 @@ module.exports = {
         if (creep.memory.full && creep.carry.energy == 0) {
             delete creep.memory.full;
             creep.say('🔄 harvest');
+            delete creep.memory.rechargeId;
         }
         if (!creep.memory.full && creep.carry.energy == creep.carryCapacity) {
             delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
@@ -90,14 +91,24 @@ module.exports = {
             }
         }
         if (!structure) {
-            let targets = this.findLowEnergyStructures(creep.room);
+            // let targets = this.findLowEnergyStructures(creep.room);
 
-            if (!targets.length) return;
+            // if (!targets.length) return;
 
-            targets.sort((a, b) => a.harvesterCount - b.harvesterCount);
-            structure = targets[0];
-            Memory.recharge[structure.id]++;
-            structure.harvesterCount++;
+            // targets.sort((a, b) => a.harvesterCount - b.harvesterCount);
+            // structure = targets[0];
+            structure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                filter: (structure) => {
+                    return (structure.structureType == STRUCTURE_EXTENSION
+                            || structure.structureType == STRUCTURE_SPAWN
+                            || structure.structureType == STRUCTURE_TOWER) &&
+                        structure.energy < structure.energyCapacity;
+                }
+            });
+            if (structure) {
+                Memory.recharge[structure.id]++;
+                structure.harvesterCount++;
+            }
         }
         if (structure) {
             creep.memory.rechargeId = structure.id;
@@ -108,7 +119,7 @@ module.exports = {
                 // unable to energize?
                 this.suicide(creep);
             } else if (code === ERR_NOT_IN_RANGE) {
-                CreepAction.moveTo(creep, structure,'#00FF3C'); // green
+                CreepsUtils.moveTo(creep, structure,'#00FF3C'); // green
             }
         }
     }, 

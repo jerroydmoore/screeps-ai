@@ -17,7 +17,7 @@ module.exports = {
     suicide: function(creep) {
         // unable to move?
         creep.say('suicide');
-        console.log(`${creep} is suiciding`);
+        console.log(`${creep}${creep.pos} is suiciding`);
         creep.busy = 1;
         creep.suicide();
     },
@@ -71,10 +71,9 @@ module.exports = {
         label += Game.time;
         console.log(`Spawning ${label} ` + JSON.stringify(bodyParts) + ` cost ${cost}/${spawner.room.energyAvailable}`);
         let code = spawner[action](bodyParts, label);
-        if (!Errors.check(spawner, action, code)) {
-            utils.gc(); // garbage collect the recently deseased creep
-            return label;
-        }
+        Errors.check(spawner, action, code);
+        utils.gc(); // garbage collect the recently deseased creep
+        return code;
     },
     bodyPartCost: function(bodyParts) {
         return bodyParts.reduce((acc, part) => {

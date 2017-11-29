@@ -1,7 +1,7 @@
 const Errors = require('errors')
 const roleHarvester = require('role.harvester');
 const Constants = require('constants');
-const CreepAction = require('creeps');
+const CreepsUtils = require('creeps');
 
 function healthRatio() {
     //console.log(`${this} ratio ${this.hits/this.hitsMax} ${this.hits} ${this.hitsMax}`)
@@ -62,7 +62,7 @@ module.exports = {
                 creep.busy = 1;
             }
             if(code == ERR_NOT_IN_RANGE) {
-                CreepAction.moveTo(creep, structure, '#FF0000');
+                CreepsUtils.moveTo(creep, structure, '#FF0000');
             } else if(code === ERR_INVALID_TARGET) {
                 console.log(`${creep} cannot repair ${structure}`)
                 delete creep.memory.repairId;
@@ -94,7 +94,7 @@ module.exports = {
             if (code === OK) {
                 creep.busy = 1;
             } else if(code == ERR_NOT_IN_RANGE) {
-                CreepAction.moveTo(creep, target);
+                CreepsUtils.moveTo(creep, target, '#ffe56d');
             } else if(code === ERR_INVALID_TARGET) {
                 delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]]
             } else if (code === ERR_NO_BODYPART) {

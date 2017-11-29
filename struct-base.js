@@ -53,11 +53,10 @@ class Struct {
 
         //round robin, build
         let generator = this.getBuildingPointsOfInterests(room)
-        console.log(generator)
         for(let target of generator) {
             let posList = utils.findFreePosNearby(target, range, howmanyToBuild, this.minFreeAdjSpaces, this.minPlacementDistance, this.avoidList);
             
-            console.log(target)
+            // console.log(target + ' ' + posList.length)
             let roadList = []
             while(posList.length && howmanyToBuild-- > 0) {
                 let pos = posList.pop();
@@ -74,6 +73,7 @@ class Struct {
         if (howmanyToBuild) {
             console.log(`Unable to build ${howmanyToBuild} ${this.structureType}(s) in ${room}`)
         }
+        return howmanyToBuild === 0;
     }
     gc() {
         this._structs = {}

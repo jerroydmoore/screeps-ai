@@ -24,6 +24,10 @@ let Phases = [
             // scouts are expected to go on roads
             parts: [TOUGH, MOVE, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK ]
 
+        },
+        Pilgrim: {
+            count: 1,
+            parts: [MOVE, CLAIM, MOVE, WORK]
         }
     }, {
         Level: 2,
@@ -47,6 +51,10 @@ let Phases = [
             count: 256,
             // scouts are expected to go on roads
             parts: [TOUGH, MOVE, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK ]
+        },
+        Pilgrim: {
+            count: 1,
+            parts: [MOVE, MOVE, CLAIM]
         }
     }
 ]

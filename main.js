@@ -4,12 +4,13 @@ const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
 const roleBuilder = require('role.builder');
 const roleScout = require('role.scout');
-const Spawner = require('spawner')
+const rolePilgrim = require('role.pilgrim');
+const Spawner = require('struct-spawner')
 const Phases = require('phases')
 const Roads = require('roads');
 const Towers = require('struct-towers');
 const Extensions = require('struct-extensions');
-const CreepsUtil = require('creeps');
+const CreepsUtils = require('creeps');
 
 module.exports.loop = function () {
     let phaseNumber = Phases.getCurrentPhaseNumber(Game.spawns['Spawn1']);
@@ -19,7 +20,9 @@ module.exports.loop = function () {
     console.log = (event) => logger(`#${Game.time}[${phaseNumber}] ${event}`);
 
     for(let roomName in Game.rooms) {
+
         let room = Game.rooms[roomName],
+            hasSpawner = false,
             structures = room.find(FIND_MY_STRUCTURES, {filter: (s) => {
                 return s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_TOWER
             } });
@@ -27,40 +30,55 @@ module.exports.loop = function () {
         for(let name in structures) {
             let s = structures[name];
             if(s.structureType === STRUCTURE_SPAWN) {
+                hasSpawner = true;
                 Spawner.run(s);
             } else if (s.structureType === STRUCTURE_TOWER) {
                 Towers.run(s);
             }
         }
+
+        if (!hasSpawner && room.controller.my) {
+            let sites = Spawner.getMySites(room)
+            if(sites.length === 0) {
+                console.log("building spawner in " + room)
+                Spawner.buildInRoom(room)
+            } else {
+                console.log(sites[0].pos);
+            }
+        }
     }
 
-    
-    // Spawner.run(Game.spawns['Spawn1']);
-    if (! Memory.gcl) Memory.gcl = Game.gcl;
-    // let tower = Game.getObjectById('ed2129c137d0c81');
-    // Towers.run(tower);
+    if (! Memory.gcl) Memory.gcl = Game.gcl.level;
 
     let x = 0
     for(let name in Game.creeps) {
         let creep = Game.creeps[name];
 
-        if ( creep.ticksToLive === 1) {
-            creep.say('☠️ dying')
-            console.log(`${creep} died naturally.`)
-        }
         if (!creep.memory.origin) {
             creep.memory.origin = creep.room.controller.id;
         }
 
         if( creep.spawning) continue;
 
+        if ( creep.ticksToLive === 1) {
+            creep.say('☠️ dying')
+            console.log(`${creep} died naturally.`)
+        }
+
+        if (creep.memory.claimed === 1) {
+            console.log("building spawner in " + room)
+            if (Spawner.buildInRoom(room)) {
+                creep.memory.claimed = 2;
+            }
+        }
+
         // Check if we need to recharge.
         if (!creep.memory.renew && creep.ticksToLive < 200 && creep.room.energyAvailable >= 600) {
             let capacity = creep.room.energyCapacityAvailable,
                 energy = creep.room.energyAvailable,
                 parts = creep.body.map(x => x.type)
-                cost = CreepsUtil.bodyPartCost(parts),
-                renewCost = CreepsUtil.bodyPartRenewCost(parts)
+                cost = CreepsUtils.bodyPartCost(parts),
+                renewCost = CreepsUtils.bodyPartRenewCost(parts)
             
             if (capacity > 700) capacity = 700; // cap it
             let ratio = cost / capacity;
@@ -83,7 +101,7 @@ module.exports.loop = function () {
             if (code === OK) {
                 creep.busy = 1;
             } else if (code === ERR_NOT_IN_RANGE || code === ERR_BUSY) {
-                CreepsUtil.moveTo(creep, spawn, '#FFFFFF');
+                CreepsUtils.moveTo(creep, spawn, '#FFFFFF');
             } else if (code === ERR_FULL || code === ERR_NOT_ENOUGH_ENERGY) {
                 delete creep.memory.renew
             } else {
@@ -94,6 +112,10 @@ module.exports.loop = function () {
 
         if (roleScout.is(creep)) {
             roleScout.run(creep);
+            continue;
+        }
+        if(rolePilgrim.is(creep)) {
+            rolePilgrim.run(creep);
             continue;
         }
 

@@ -2,7 +2,7 @@ const Constants = require('constants');
 const Errors = require('errors');
 const Roads = require('roads');
 const roleHarvester = require('role.harvester');
-const CreepAction = require('creeps');
+const CreepsUtils = require('creeps');
 const utils = require('utils');
 
 module.exports = {
@@ -48,7 +48,7 @@ module.exports = {
             if (code === OK) {
                 creep.busy = 1;
             } else if (code === ERR_NOT_IN_RANGE) {
-                CreepAction.moveTo(creep, controller, '#4800FF'); //blue
+                CreepsUtils.moveTo(creep, controller, '#4800FF'); //blue
             } else if (code === ERR_NOT_OWNER) {
                 console.log(`${creep} is lost in ${creep.room}`)
             } else if (code === ERR_NO_BODYPART) {
