@@ -1,13 +1,9 @@
-const Errors = require('errors');
 const Constants = require('constants');
-const Roads = require('roads');
-const CreepsBase = require('creeps');
-const GIVEUP_SOURCE_AFTER_BLOCK_COUNT = 10;
 
 let _lowEnergyStructs = {};
 
 module.exports = {
-    roleName: "Harvester",
+    roleName: 'Harvester',
 
     is: function(creep) {
         return creep.name.startsWith(module.exports.roleName);
@@ -27,7 +23,7 @@ module.exports = {
                 x.harvesterCount = Memory.recharge[x.id] || 0;
                 if (x.harvesterCount === 0) Memory.recharge[x.id] = 0; // ensure the Memory location is allocated
                 return x;
-            })
+            });
         }
         return _lowEnergyStructs[room.id];
     },
@@ -45,7 +41,7 @@ module.exports = {
             creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
             let code = creep.harvest(source);
             if (code === ERR_NOT_IN_RANGE) {
-                let code = this.moveTo(creep, source, '#ffaa00'); //orange
+                code = this.moveTo(creep, source, '#ffaa00'); //orange
                 // What about using Storage???
             } else if (code === ERR_NOT_ENOUGH_RESOURCES) {
                 delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
@@ -112,7 +108,7 @@ module.exports = {
         }
         if (structure) {
             creep.memory.rechargeId = structure.id;
-            let code = creep.transfer(structure, RESOURCE_ENERGY)
+            let code = creep.transfer(structure, RESOURCE_ENERGY);
             if (code === OK) {
                 creep.busy = 1;
             } else if (code === ERR_NO_BODYPART) {

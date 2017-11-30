@@ -44,10 +44,10 @@ module.exports = {
             room = roomObj.room;
 
         const FREE = 0, FREE_BUT_DISQUALIFIED = 1, OCCUPIED = 2, AVOID_AREA = 3;
-        const FREE_ENTRY = {type: FREE, range: 0}
-        const DISQUALIFIED_ENTRY = {type: FREE_BUT_DISQUALIFIED, range: 0}
-        const OCCUPIED_ENTRY = {type: OCCUPIED, range: 0}
-        avoidList.forEach(x => x.type = AVOID_AREA)
+        const FREE_ENTRY = {type: FREE, range: 0};
+        const DISQUALIFIED_ENTRY = {type: FREE_BUT_DISQUALIFIED, range: 0};
+        const OCCUPIED_ENTRY = {type: OCCUPIED, range: 0};
+        avoidList.forEach(x => x.type = AVOID_AREA);
 
         // We can't use findPath* functions if pos is not free
         if (this.isWallTerrain(pos)) {
@@ -67,7 +67,7 @@ module.exports = {
                         if (avoidEntry.filter(o) && avoidEntry.range > res.range) {
                             res = avoidEntry;
                         }
-                    })
+                    });
                     return res;
                 }, FREE_ENTRY);
             }
@@ -79,7 +79,7 @@ module.exports = {
             for (let j in matrix[i]) {
                 j = parseInt(j);
                 if (matrix[i][j].type === AVOID_AREA) {
-                    this.markNearby(matrix, i, j, [FREE_ENTRY], DISQUALIFIED_ENTRY, matrix[i][j].range)
+                    this.markNearby(matrix, i, j, [FREE_ENTRY], DISQUALIFIED_ENTRY, matrix[i][j].range);
                 } else if (matrix[i][j] === FREE_ENTRY) {
                     // check candidate for tight spaces
                     let x = this.correctInvalidCoord(i-1);
@@ -154,4 +154,4 @@ module.exports = {
             }
         }
     }
-}
+};

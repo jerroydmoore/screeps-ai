@@ -1,12 +1,10 @@
-const Errors = require('errors');
+
 const Constants = require('constants');
-const Roads = require('roads');
 const CreepsBase = require('creeps');
-const GIVEUP_SOURCE_AFTER_BLOCK_COUNT = 10;
 
 let _lowEnergyStructs = {};
 
-const role = "Harvester";
+const role = 'Harvester';
 class RoleHarvester extends CreepsBase {
     constructor() {
         super(role);
@@ -26,7 +24,7 @@ class RoleHarvester extends CreepsBase {
                 x.harvesterCount = Memory.recharge[x.id] || 0;
                 if (x.harvesterCount === 0) Memory.recharge[x.id] = 0; // ensure the Memory location is allocated
                 return x;
-            })
+            });
         }
         return _lowEnergyStructs[room.id];
     }
@@ -85,7 +83,7 @@ class RoleHarvester extends CreepsBase {
         }
         if (structure) {
             creep.memory.rechargeId = structure.id;
-            let code = creep.transfer(structure, RESOURCE_ENERGY)
+            let code = creep.transfer(structure, RESOURCE_ENERGY);
             if (code === OK) {
                 creep.busy = 1;
             } else if (code === ERR_NO_BODYPART) {
@@ -99,6 +97,6 @@ class RoleHarvester extends CreepsBase {
     gc () {
         _lowEnergyStructs = {};
     }
-};
+}
 
 module.exports = new RoleHarvester();

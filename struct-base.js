@@ -5,7 +5,7 @@ const Errors = require('errors');
 
 class Struct {
     constructor(structureType) {
-        this.structureType = structureType
+        this.structureType = structureType;
         this.gc();
     }
     getMyStructs(room) {
@@ -40,44 +40,43 @@ class Struct {
     buildInRoom (room) {
         let existingExt = this.getMyStructs(room),
             existingSites = this.getMySites(room),
-            existing = existingExt.length + existingSites.length,
             desired = this.getDesiredNumberOfStructs(room),
             howmanyBuilt = existingExt.length + existingSites.length,
             howmanyToBuild = desired - howmanyBuilt,
             range = this.getDesiredRange(room);
 
         if(howmanyToBuild < 1) {
-            console.log(`No ${this.structureType} to create in ${room}. Already enough: ${howmanyBuilt}/${desired}`)
+            console.log(`No ${this.structureType} to create in ${room}. Already enough: ${howmanyBuilt}/${desired}`);
             return;
         }
 
         //round robin, build
-        let generator = this.getBuildingPointsOfInterests(room)
+        let generator = this.getBuildingPointsOfInterests(room);
         for(let target of generator) {
             let posList = utils.findFreePosNearby(target, range, howmanyToBuild, this.minFreeAdjSpaces, this.minPlacementDistance, this.avoidList);
             
             // console.log(target + ' ' + posList.length)
-            let roadList = []
+            let roadList = [];
             while(posList.length && howmanyToBuild-- > 0) {
                 let pos = posList.pop();
                 let code = room.createConstructionSite(pos, this.structureType);
-                Errors.check(pos, `createConstructionSite({$this.structureType})`, code);
+                Errors.check(pos, `createConstructionSite(${this.structureType})`, code);
                 if (code !== OK) howmanyToBuild++;
                 if (code === OK) {
-                    console.log(`Creating ${this.structureType} at ${pos}`)
-                    roadList.push(pos)
+                    console.log(`Creating ${this.structureType} at ${pos}`);
+                    roadList.push(pos);
                 }
             }
             Roads.connect(target, roadList);
         }
         if (howmanyToBuild) {
-            console.log(`Unable to build ${howmanyToBuild} ${this.structureType}(s) in ${room}`)
+            console.log(`Unable to build ${howmanyToBuild} ${this.structureType}(s) in ${room}`);
         }
         return howmanyToBuild === 0;
     }
     gc() {
-        this._structs = {}
-        this._sites = {}
+        this._structs = {};
+        this._sites = {};
     }
 }
 module.exports = Struct;

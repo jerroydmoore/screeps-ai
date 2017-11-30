@@ -1,23 +1,25 @@
 const Errors = require('errors');
+const RoomUtils = require('rooms');
 const Roads = require('roads');
 const utils = require('utils');
 const Phases = require('phases');
 const Constants = require('constants');
 
-const BODYPART_COST = {
-    [MOVE]: 50,
-    [WORK]: 100,
-    [ATTACK]: 80,
-    [CARRY]: 50,
-    [HEAL]: 250,
-    [RANGED_ATTACK]: 150,
-    [TOUGH]: 10,
-    [CLAIM]: 600
-};
+// already declared
+// const BODYPART_COST = {
+//     [MOVE]: 50,
+//     [WORK]: 100,
+//     [ATTACK]: 80,
+//     [CARRY]: 50,
+//     [HEAL]: 250,
+//     [RANGED_ATTACK]: 150,
+//     [TOUGH]: 10,
+//     [CLAIM]: 600
+// };
 
 class CreepsBase {
     constructor(role) {
-        this.roleName = role
+        this.roleName = role;
     }
     is (creep) {
         return creep.name.startsWith(this.roleName);
@@ -36,7 +38,7 @@ class CreepsBase {
             return;
         }
         if (color) {
-            opts.visualizePathStyle = { stroke: color, opacity: 1, lineStyle: 'dotted' }
+            opts.visualizePathStyle = { stroke: color, opacity: 1, lineStyle: 'dotted' };
         }
         if (reusePath) {
             opts.reusePath = reusePath;
@@ -54,7 +56,7 @@ class CreepsBase {
             if(code === OK && creep.memory.blocked && --creep.memory.blocked >= 0) {
                 delete creep.memory.blocked;
             }
-            Roads.shouldBuildAt(creep)
+            Roads.shouldBuildAt(creep);
             return OK;
         } else if (code === ERR_NO_BODYPART) {
             // unable to move?
@@ -74,7 +76,7 @@ class CreepsBase {
             creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
             let code = creep.harvest(source);
             if (code === ERR_NOT_IN_RANGE) {
-                let code = this.moveTo(creep, source, '#ffaa00'); //orange
+                code = this.moveTo(creep, source, '#ffaa00'); //orange
                 // What about using Storage???
             } else if (code === ERR_NOT_ENOUGH_RESOURCES) {
                 delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
@@ -119,7 +121,7 @@ class CreepsBase {
     /* static */ bodyPartRenewCost (bodyParts) {
         let cost = this.bodyPartCost(bodyParts);
         let body_size = bodyParts.length;
-        return Math.ceil(cost/2.5/body_size)
+        return Math.ceil(cost/2.5/body_size);
     }
 
     run (creep) {
@@ -133,34 +135,34 @@ class CreepsBase {
 
         if (!creep.memory.renew && creep.ticksToLive < 200 && (energyRatio >= 0.8 || energy > 600)) {
             let parts = creep.body.map(x => x.type),
-                cost = this.bodyPartCost(parts),
-                renewCost = this.bodyPartRenewCost(parts)
+                cost = this.bodyPartCost(parts);
+            //let renewCost = this.bodyPartRenewCost(parts);
             
             if (capacity > 700) capacity = 700; // cap it
             let costRatio = cost / capacity;
 
             if (costRatio > 0.8) {
                 // we want to keep this!
-                let spawn = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_SPAWN })
+                let spawn = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_SPAWN });
                 if (spawn) {
                     creep.memory.renew = spawn.id;
                     creep.say('⛑ Healing');
                     //console.log(`Renewing ${creep} renew cost ${renewCost} rebuild cost ${cost} capacity ${capacity} ratio ${ratio}`)
                 } else {
                     creep.memory.renew = -1;
-                    console.log('cannot renew ${creep} in room ${creep.room}: no spawner found')
+                    console.log('cannot renew ${creep} in room ${creep.room}: no spawner found');
                 }
             }
         }
         if (creep.memory.renew && creep.memory.renew !== -1) {
-            let spawn = Game.getObjectById(creep.memory.renew)
+            let spawn = Game.getObjectById(creep.memory.renew);
             let code = spawn.renewCreep(creep);
             if (code === OK) {
                 creep.busy = 1;
             } else if (code === ERR_NOT_IN_RANGE || code === ERR_BUSY) {
                 this.moveTo(creep, spawn, '#FFFFFF');
             } else if (code === ERR_FULL || code === ERR_NOT_ENOUGH_ENERGY) {
-                delete creep.memory.renew
+                delete creep.memory.renew;
             } else {
                 Errors.check(spawn, `renewCreep(${creep})`, code);
                 creep.memory.renew = -1;
@@ -197,9 +199,9 @@ class CreepsBase {
             for(let roomName in Memory.rooms) {
                 if (Memory.rooms[roomName].hasEnemy !== 1) continue;
                 
-                creep.memory.roomOrders = Game.map.findRoute(creep.room, roomName).map(x => { return {exit: x.exit, roomName: x.room}})
+                creep.memory.roomOrders = Game.map.findRoute(creep.room, roomName).map(x => { return {exit: x.exit, roomName: x.room};});
                 console.log('Game orders');
-                console.log(JSON.stringify(creep.memory.roomOrders))
+                console.log(JSON.stringify(creep.memory.roomOrders));
                 target = creep.memory.roomOrders[0].exit;
             }
         }
@@ -210,7 +212,7 @@ class CreepsBase {
             
             let path = RoomUtils.bfs(ref);
             
-            let displayPath = path.map(x => { return {exit: RoomUtils.EXIT_NAME[x.exit], roomName: x.roomName} });
+            let displayPath = path.map(x => { return {exit: RoomUtils.EXIT_NAME[x.exit], roomName: x.roomName}; });
             console.log(creep + ' bfs Path ' + JSON.stringify(displayPath));
 
             creep.memory.roomOrders = path;
@@ -223,7 +225,7 @@ class CreepsBase {
             let code = this.moveTo(creep, dest, '#5d80b2', 50);
             Errors.check(creep, `moveTo(${dest})`, code);
             if (code === ERR_INVALID_TARGET) {
-                delete creep.memory.roomOrders
+                delete creep.memory.roomOrders;
             }
             
         } else {

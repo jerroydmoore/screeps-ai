@@ -1,11 +1,10 @@
 const StructBase = require('struct-base');
-const Errors = require('errors');
 const utils = require('utils');
 const AVOID_LIST = utils.AVOID_LIST;
 const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
 const roleBuilder = require('role.builder');
-const roleScout = require('role.scout');
+// const roleScout = require('role.scout');
 const rolePilgrim = require('role.pilgrim');
 const Phases = require('phases');
 const Roads = require('roads');
@@ -36,7 +35,7 @@ class StructSpawners extends StructBase {
             let paths = sources.map((s) => {
                 let res = PathFinder.search(room.controller.pos, s, { range: 1, pos: s.pos, }, { maxRooms: 1 });
                 return {length: res.length, res, source: s };
-            })
+            });
             paths.sort((a, b) => b.length - a.length);
             for(let i=0;i<paths.length;i++) {
                 yield paths[i].source;
@@ -54,7 +53,7 @@ class StructSpawners extends StructBase {
             spawner.memory.level = spawner.room.controller.level;
             
             // create a creep immediately
-            CreepsBase.spawn(spawner, roleHarvester.roleName, phase.Harvester.parts)
+            roleHarvester.spawn(spawner);
         } 
         if(spawner.memory.level !== spawner.room.controller.level) {
             // We can build things!
@@ -63,7 +62,7 @@ class StructSpawners extends StructBase {
             if (spawner.memory.setup < 2) {
                 // Create network of roads to common places
                 console.log('Create Network of Roads');
-                let sources = spawner.room.find(FIND_SOURCES)
+                let sources = spawner.room.find(FIND_SOURCES);
                 Roads.connect(spawner, sources);
                 Roads.connect(spawner.room.controller, sources);
                 spawner.memory.setup = 2;
@@ -83,19 +82,19 @@ class StructSpawners extends StructBase {
 
             if (harvesters.length < phase.Harvester.count) {
                 spawner.memory.skippedSpawnCount = 0;
-                roleHarvester.spawn(spawner)
+                roleHarvester.spawn(spawner);
             } else if (builders.length < phase.Builder.count) {
                 spawner.memory.skippedSpawnCount = 0;
-                roleBuilder.spawn(spawner)
+                roleBuilder.spawn(spawner);
             } else if (upgraders.length < phase.Upgrader.count) {
                 spawner.memory.skippedSpawnCount = 0;
-                roleUpgrader.spawn(spawner)
+                roleUpgrader.spawn(spawner);
             } else {
                 // determine if gcl.level > 1, then spawn one.
                 if (Game.gcl.level !== Memory.gcl && spawner.room.energyAvailable >= 900) {
 
                     spawner.memory.skippedSpawnCount = 0;
-                    let code = rolePilgrim.spawn(spawner)
+                    let code = rolePilgrim.spawn(spawner);
                     if (code === OK) {
                         Memory.gcl = Game.gcl.level;
                     }
@@ -108,7 +107,7 @@ class StructSpawners extends StructBase {
             //             spawner.memory.skippedSpawnCount = 0;
             //         }
             //         if ( ++spawner.memory.skippedSpawnCount % phase.SpawnScoutAfterSkippedPeriods === 0) {
-                        // CreepsUtil.spawn(spawner, roleScout.roleName, phase.Scout.parts);
+            // CreepsUtil.spawn(spawner, roleScout.roleName, phase.Scout.parts);
             //             spawner.memory.skippedSpawnCount = 0;
             //         }
             //     }

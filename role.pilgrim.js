@@ -1,11 +1,9 @@
 const Errors = require('errors');
-const Constants = require('constants');
-const Roads = require('roads');
 const RoomUtils = require('rooms');
 const CreepsBase = require('creeps');
 const roleBuilder = require('role.builder');
 
-const role = "Pilgrim";
+const role = 'Pilgrim';
 class RolePilgrim extends CreepsBase {
     constructor() {
         super(role);
@@ -13,7 +11,7 @@ class RolePilgrim extends CreepsBase {
     run (creep) {
 
         let roomName = creep.pos.roomName;
-        if (! Memory.rooms) Memory.rooms = {}
+        if (! Memory.rooms) Memory.rooms = {};
         if (! creep.memory.prevRoom) {
             creep.memory.prevRoom = roomName;
         }
@@ -22,7 +20,7 @@ class RolePilgrim extends CreepsBase {
         if (! Memory.rooms[roomName]) {
             let defaultObj = {roomName: roomName, exits: {} };
             Memory.rooms[roomName] = defaultObj;
-            let exits = Game.map.describeExits(roomName)
+            let exits = Game.map.describeExits(roomName);
             RoomUtils.EXITS.forEach(exitDir => {
                 let isConnected = !!exits[exitDir];
                  
@@ -47,7 +45,7 @@ class RolePilgrim extends CreepsBase {
             let lastExitDir = creep.memory.roomOrders[0].exit,
                 lastRoom = Memory.rooms[creep.memory.prevRoom];
             lastRoom.exits[lastExitDir] = roomName;
-            console.log(`${creep} updated room ${creep.memory.prevRoom} exit ${RoomUtils.EXIT_NAME[lastExitDir]}(${lastExitDir}) to ${roomName} - ${JSON.stringify(lastRoom)}`)
+            console.log(`${creep} updated room ${creep.memory.prevRoom} exit ${RoomUtils.EXIT_NAME[lastExitDir]}(${lastExitDir}) to ${roomName} - ${JSON.stringify(lastRoom)}`);
 
             // update this room with last room info
             let oppositeExitDir;
@@ -57,7 +55,7 @@ class RolePilgrim extends CreepsBase {
             if (lastExitDir === FIND_EXIT_RIGHT) oppositeExitDir = FIND_EXIT_LEFT;
             lastRoom = Memory.rooms[roomName];
             lastRoom.exits[oppositeExitDir] = creep.memory.prevRoom;
-            console.log(`${creep} updated room ${roomName} exit ${RoomUtils.EXIT_NAME[oppositeExitDir]}(${oppositeExitDir}) to ${creep.memory.prevRoom} - ${JSON.stringify(lastRoom)}`)
+            console.log(`${creep} updated room ${roomName} exit ${RoomUtils.EXIT_NAME[oppositeExitDir]}(${oppositeExitDir}) to ${creep.memory.prevRoom} - ${JSON.stringify(lastRoom)}`);
             creep.memory.prevRoom = roomName;
         }
         this.regularOrders(creep);
@@ -76,7 +74,7 @@ class RolePilgrim extends CreepsBase {
                     creep.memory.claimed = 1;
                     
                 } else if (code === ERR_NOT_IN_RANGE) {
-                    this.moveTo(creep, controller, '#b99cfb')
+                    this.moveTo(creep, controller, '#b99cfb');
                     creep.busy = 1;
                 } else if (code === ERR_GCL_NOT_ENOUGH) {
                     console.log('Not enough GCL to claim a room');

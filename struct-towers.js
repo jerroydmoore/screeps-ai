@@ -1,6 +1,4 @@
 const StructBase = require('struct-base');
-const Roads = require('roads');
-const Errors = require('errors');
 const utils = require('utils');
 const AVOID_LIST = utils.AVOID_LIST;
 

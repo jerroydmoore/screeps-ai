@@ -1,10 +1,8 @@
 const Errors = require('errors');
-const Constants = require('constants');
-const Roads = require('roads');
 const RoomUtils = require('rooms');
 const CreepsBase = require('creeps');
 
-const role = "Scout";
+const role = 'Scout';
 class RoleScout extends CreepsBase {
     constructor() {
         super(role);
@@ -16,7 +14,7 @@ class RoleScout extends CreepsBase {
             let code = creep.attack(closestHostile);
             if (code === OK) {
                 creep.busy = 1;
-                creep.say('😡 attack!')
+                creep.say('😡 attack!');
                 return code;
             } else if (code === ERR_NOT_IN_RANGE) {
                 this.moveTo(creep, closestHostile);
@@ -33,7 +31,7 @@ class RoleScout extends CreepsBase {
             let code = creep.attack(closestHostile);
             if (code === OK) {
                 creep.busy = 1;
-                creep.say('😡 attack!')
+                creep.say('😡 attack!');
                 return code;
             } else if (code === ERR_NOT_IN_RANGE) {
                 this.moveTo(creep, closestHostile);
@@ -46,10 +44,10 @@ class RoleScout extends CreepsBase {
         Memory.rooms[creep.pos.roomName].hasEnemy = 0;
     }
     run (creep) {
-// return;
+        // return;
 
         let roomName = creep.pos.roomName;
-        if (! Memory.rooms) Memory.rooms = {}
+        if (! Memory.rooms) Memory.rooms = {};
         if (! creep.memory.prevRoom) {
             creep.memory.prevRoom = roomName;
         }
@@ -58,7 +56,7 @@ class RoleScout extends CreepsBase {
         if (! Memory.rooms[roomName]) {
             let defaultObj = {roomName: roomName, exits: {} };
             Memory.rooms[roomName] = defaultObj;
-            let exits = Game.map.describeExits(roomName)
+            let exits = Game.map.describeExits(roomName);
             RoomUtils.EXITS.forEach(exitDir => {
                 let isConnected = !!exits[exitDir];
                  
@@ -83,7 +81,7 @@ class RoleScout extends CreepsBase {
             let lastExitDir = creep.memory.roomOrders[0].exit,
                 lastRoom = Memory.rooms[creep.memory.prevRoom];
             lastRoom.exits[lastExitDir] = roomName;
-            console.log(`${creep} updated room ${creep.memory.prevRoom} exit ${RoomUtils.EXIT_NAME[lastExitDir]}(${lastExitDir}) to ${roomName} - ${JSON.stringify(lastRoom)}`)
+            console.log(`${creep} updated room ${creep.memory.prevRoom} exit ${RoomUtils.EXIT_NAME[lastExitDir]}(${lastExitDir}) to ${roomName} - ${JSON.stringify(lastRoom)}`);
 
             // update this room with last room info
             let oppositeExitDir;
@@ -93,7 +91,7 @@ class RoleScout extends CreepsBase {
             if (lastExitDir === FIND_EXIT_RIGHT) oppositeExitDir = FIND_EXIT_LEFT;
             lastRoom = Memory.rooms[roomName];
             lastRoom.exits[oppositeExitDir] = creep.memory.prevRoom;
-            console.log(`${creep} updated room ${roomName} exit ${RoomUtils.EXIT_NAME[oppositeExitDir]}(${oppositeExitDir}) to ${creep.memory.prevRoom} - ${JSON.stringify(lastRoom)}`)
+            console.log(`${creep} updated room ${roomName} exit ${RoomUtils.EXIT_NAME[oppositeExitDir]}(${oppositeExitDir}) to ${creep.memory.prevRoom} - ${JSON.stringify(lastRoom)}`);
             creep.memory.prevRoom = roomName;
         }
         this.regularOrders(creep);

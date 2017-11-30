@@ -1,4 +1,3 @@
-const Errors = require('errors')
 const roleHarvester = require('role.harvester');
 const Constants = require('constants');
 const CreepsBase = require('creeps');
@@ -10,8 +9,8 @@ function healthRatio() {
     return res;
 }
 
-let _lowHealthStructs = {}
-const role = "Builder";
+let _lowHealthStructs = {};
+const role = 'Builder';
 
 class RoleBuilder extends CreepsBase {
     constructor() {
@@ -36,14 +35,14 @@ class RoleBuilder extends CreepsBase {
     repair (creep, repairThreshold=0.2, fixedThreshold=0.95) {
         let repairId = creep.memory.repairId,
             structure = undefined;
-        let ratio;
-        if (repairId) {
-            structure = Game.getObjectById(repairId)
-            ratio = healthRatio.call(structure);
 
-            if ( healthRatio.call(structure) > fixedThreshold) {
+        if (repairId) {
+            structure = Game.getObjectById(repairId);
+            let ratio = healthRatio.call(structure);
+
+            if ( ratio > fixedThreshold) {
                 structure = undefined;
-                delete creep.memory.repairId
+                delete creep.memory.repairId;
             }
         }
         
@@ -52,9 +51,8 @@ class RoleBuilder extends CreepsBase {
             if (!targets.length) return;
             targets.sort((a,b) => a.healthRatio() - b.healthRatio());
             structure = targets.shift();
-
-            ratio = structure.hits/structure.hits;
         }
+        
         if (structure) {
             creep.memory.repairId = structure.id;
 
@@ -65,15 +63,15 @@ class RoleBuilder extends CreepsBase {
             if(code == ERR_NOT_IN_RANGE) {
                 this.moveTo(creep, structure, '#FF0000');
             } else if(code === ERR_INVALID_TARGET) {
-                console.log(`${creep} cannot repair ${structure}`)
+                console.log(`${creep} cannot repair ${structure}`);
                 delete creep.memory.repairId;
             } else if (code === ERR_NO_BODYPART) {
                 // unable to move?
                 this.suicide(creep);
             }
             if (!creep.busy) {
-                console.log('find anothe repair ' + code)
-                this.repair(creep, repairThreshold, fixedThreshold) // try again with a valid target
+                console.log('find anothe repair ' + code);
+                this.repair(creep, repairThreshold, fixedThreshold); // try again with a valid target
             }
         }
     }
@@ -97,13 +95,13 @@ class RoleBuilder extends CreepsBase {
             } else if(code == ERR_NOT_IN_RANGE) {
                 this.moveTo(creep, target, '#ffe56d');
             } else if(code === ERR_INVALID_TARGET) {
-                delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]]
+                delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]];
             } else if (code === ERR_NO_BODYPART) {
                 // unable to build?
                 this.suicide(creep);
             }
         } else if(targetId) {
-            delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]]
+            delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]];
         }
     }
     
@@ -134,6 +132,6 @@ class RoleBuilder extends CreepsBase {
     gc () {
         _lowHealthStructs = {};
     }
-};
+}
 
 module.exports = new RoleBuilder();

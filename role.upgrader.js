@@ -1,11 +1,10 @@
 const Constants = require('constants');
 const Errors = require('errors');
-const Roads = require('roads');
 const roleHarvester = require('role.harvester');
 const CreepsBase = require('creeps');
 const utils = require('utils');
 
-const role = "Upgrader";
+const role = 'Upgrader';
 class RoleUpgrader extends CreepsBase {
     constructor() {
         super(role);
@@ -21,7 +20,7 @@ class RoleUpgrader extends CreepsBase {
                 source = pos.findClosestByPath(FIND_SOURCES);
             if (!source) {
                 creep.say('🚦 stuck');
-                console.log(`${creep} cannot find a source`)
+                console.log(`${creep} cannot find a source`);
             } else {
                 creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
             }
@@ -43,7 +42,7 @@ class RoleUpgrader extends CreepsBase {
                 controller = Game.getObjectById(creep.memory.origin);
             }
             if (!controller.my) {
-                console.log(`${creep} attempting to upgrade at a ${controller} not owned by us!`)
+                console.log(`${creep} attempting to upgrade at a ${controller} not owned by us!`);
             }
             let code = creep.upgradeController(controller);
             if (code === OK) {
@@ -51,17 +50,17 @@ class RoleUpgrader extends CreepsBase {
             } else if (code === ERR_NOT_IN_RANGE) {
                 this.moveTo(creep, controller, '#4800FF'); //blue
             } else if (code === ERR_NOT_OWNER) {
-                console.log(`${creep} is lost in ${creep.room}`)
+                console.log(`${creep} is lost in ${creep.room}`);
             } else if (code === ERR_NO_BODYPART) {
                 // unable to upgrade?
                 this.suicide(creep);
             } else {
-                Errors.check(creep, 'upgradeController', code)
+                Errors.check(creep, 'upgradeController', code);
             }
         } else {
             roleHarvester.harvest(creep);
         }
     }
-};
+}
 
 module.exports = new RoleUpgrader();

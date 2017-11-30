@@ -1,4 +1,4 @@
-const StructExtensions = require('struct-extensions')
+const StructExtensions = require('struct-extensions');
 let Phases = [
     {}, // Controller level starts at 0
     {
@@ -65,7 +65,7 @@ let Phases = [
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
     }
-]
+];
 
 Phases.getCurrentPhaseInfo = function (spawner) {
     let number = Phases.getCurrentPhaseNumber(spawner);
@@ -76,10 +76,10 @@ Phases.getCurrentPhaseInfo = function (spawner) {
         }
     }
     return Phases[number];
-}
+};
 Phases.getCurrentPhaseNumber = function(spawner) {
     return spawner.memory.phase || 1;
-}
+};
 Phases.determineCurrentPhaseNumber = function (spawner) {
     let phaseNo = spawner.memory.phase || 1,
         period = Phases[phaseNo].checkLevelPeriod;
@@ -92,11 +92,11 @@ Phases.determineCurrentPhaseNumber = function (spawner) {
             spawner.memory.phase = 2;
         }
         if (phaseNo !== spawner.memory.phase) {
-            console.log(`Updated ${spawner} phase to ${spawner.memory.phase}`)
+            console.log(`Updated ${spawner} phase to ${spawner.memory.phase}`);
         }
     }
     // TODO: Rooms that don't have a controller?
     return spawner.memory.phase;
-}
+};
 
 module.exports = Phases;

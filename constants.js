@@ -15,4 +15,4 @@ module.exports = {
         8: { spawnRange: 10, extensionRange: 11, towerRange: 15 }
         // TODO build towers by entrances
     }
-}
+};
