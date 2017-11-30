@@ -26,6 +26,11 @@ module.exports.loop = function () {
                 return s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_TOWER
             } });
         
+        // let sites = room.find(FIND_MY_CONSTRUCTION_SITES, {filter: (s) => {
+        //     return s.structureType === STRUCTURE_ROAD;
+        // } });
+        // sites.forEach((x) => x.remove());
+        
         for(let name in structures) {
             let s = structures[name];
             if(s.structureType === STRUCTURE_SPAWN) {

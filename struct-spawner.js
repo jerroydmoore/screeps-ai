@@ -66,6 +66,7 @@ class StructSpawners extends StructBase {
                 let sources = spawner.room.find(FIND_SOURCES)
                 Roads.connect(spawner, sources);
                 Roads.connect(spawner.room.controller, sources);
+                spawner.memory.setup = 2;
             }
             StructExtensions.buildInRoom(spawner.room);
             StructTowers.buildInRoom(spawner.room);

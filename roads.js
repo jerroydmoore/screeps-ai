@@ -70,11 +70,46 @@ Road = {
         if(!destinations || destinations.length === 0) return;
 
         let room = target.room || Game.rooms[target.roomName];
+        let targetPos = target.pos || target;
         //target = utils.findFreeAdjecentPos(target);
-        destinations.forEach((pos) => {
-            // let pos = utils.findFreeAdjecentPos(_pos),
+        destinations.forEach((dest) => {
+            let pos = dest.pos || dest;
+            // let pos = utils.findFreeAdjecentPos(dest),
             //     path = target.findPathTo(pos);
-            let res = PathFinder.search(target, {pos, range: 1}, {maxRooms: 1});
+            
+            let res = PathFinder.search(targetPos, {pos, range: 1}, {
+                maxRooms: 1,
+                swampCost: 2,
+                plainCost: 2,
+                roomCallback: (roomName) => {
+                    let room = Game.rooms[roomName];
+                    if ( !room) return;
+                    let costs = new PathFinder.CostMatrix();
+
+                    room.find(FIND_STRUCTURES).forEach(function(struct) {
+                        if (struct.structureType === STRUCTURE_ROAD) {
+                          // Favor roads over plain tiles
+                          costs.set(struct.pos.x, struct.pos.y, 1);
+                        } else if (struct.structureType !== STRUCTURE_CONTAINER &&
+                                   (struct.structureType !== STRUCTURE_RAMPART ||
+                                    !struct.my)) {
+                          // Can't walk through non-walkable buildings
+                          costs.set(struct.pos.x, struct.pos.y, 0xff);
+                        }
+                    });
+                    room.find(FIND_MY_CONSTRUCTION_SITES).forEach(function(struct) {
+                        if (struct.structureType === STRUCTURE_ROAD) {
+                          // Favor roads over plain tiles
+                          costs.set(struct.pos.x, struct.pos.y, 1);
+                        } else if (struct.structureType !== STRUCTURE_CONTAINER &&
+                                   (struct.structureType !== STRUCTURE_RAMPART ||
+                                    !struct.my)) {
+                          // Can't walk through non-walkable buildings
+                          costs.set(struct.pos.x, struct.pos.y, 0xff);
+                        }
+                    });
+                }});
+            let path = res.path;
 
             path.forEach((point) => {
                 //let point = new RoomPosition(_point.x, _point.y, room.name);
