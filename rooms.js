@@ -5,9 +5,27 @@ const EXIT_NAME = {
     [FIND_EXIT_RIGHT]: 'FIND_EXIT_RIGHT'
 };
 
+let _fallenResource = {};
 module.exports = {
     EXIT_NAME: EXIT_NAME,
     EXITS: [FIND_EXIT_TOP, FIND_EXIT_RIGHT, FIND_EXIT_BOTTOM, FIND_EXIT_LEFT],
+
+    gc() {
+        if (Game.tick % 7 === 0) {
+            _fallenResource = {};
+        }
+    },
+    findFallenResource(roomName) {
+        let room = Game.rooms[roomName];
+        if ( !room) return;
+        if ( !_fallenResource[roomName]) {
+            _fallenResource[roomName] = room.find(FIND_DROPPED_RESOURCES);
+        }
+        
+        if (_fallenResource[roomName]) {
+            return _fallenResource[roomName][0];
+        }
+    },
     determineRoomName: function(roomName, exitDir) {
         let pre1 = roomName[0],
             leftright = parseInt(roomName[1]),

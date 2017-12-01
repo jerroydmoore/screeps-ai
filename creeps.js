@@ -64,12 +64,34 @@ class CreepsBase {
         }
         return code;
     }
+
+    pickupFallenResource(creep) {
+
+        
+        let resource = RoomUtils.findFallenResource(creep.pos.roomName);
+        if ( !resource) return;
+
+        creep.busy = 1;
+
+        let code = creep.pickup(resource);
+        if (code === ERR_NOT_IN_RANGE) {
+            this.moveTo(creep, creep.memory.pickupPos, '#ffaa00');
+        } else if (code === OK) {
+            console.log('picked up');
+            creep.busy = 1;
+        } else {
+            //delete creep.memory.pickupPos;
+            Errors.check(creep, `pickup(${creep.memory.pickupPos})`, code);
+        }
+    }
+
     harvest (creep) {
         let sourceId = creep.memory[Constants.MemoryKey[LOOK_SOURCES]],
             source = undefined;
         if (sourceId) {
             source = Game.getObjectById(sourceId);
         } else {
+            this.pickupFallenResource(creep);
             source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
         }
         if (source) {

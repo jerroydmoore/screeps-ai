@@ -8,6 +8,7 @@ const Phases = require('phases');
 const Roads = require('roads');
 const Towers = require('struct-towers');
 const Extensions = require('struct-extensions');
+const roomUtils = require('rooms');
 
 module.exports.loop = function () {
     let phaseNumber = Phases.getCurrentPhaseNumber(Game.spawns['Spawn1']);
@@ -101,4 +102,5 @@ module.exports.loop = function () {
     roleBuilder.gc();
     Towers.gc();
     Extensions.gc();
+    roomUtils.gc();
 };
