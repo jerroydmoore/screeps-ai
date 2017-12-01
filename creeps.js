@@ -127,16 +127,19 @@ class CreepsBase {
     }
     shouldRenew(creep) {
         // Check if we need to heal.
-        if (!creep.memory.renew && creep.ticksToLive < 200 && creep.room.energyAvailable >= 600) {
-            let capacity = creep.room.energyCapacityAvailable,
-                energy = creep.room.energyAvailable,
-                parts = creep.body.map(x => x.type),
+        let capacity = creep.room.energyCapacityAvailable,
+            energy = creep.room.energyAvailable,
+            energyRatio = energy / capacity;
+
+        if (!creep.memory.renew && creep.ticksToLive < 200 && (energyRatio >= 0.8 || energy > 600)) {
+            let parts = creep.body.map(x => x.type),
                 cost = this.bodyPartCost(parts),
                 renewCost = this.bodyPartRenewCost(parts)
             
             if (capacity > 700) capacity = 700; // cap it
-            let ratio = cost / capacity;
-            if (ratio > 0.8) {
+            let costRatio = cost / capacity;
+
+            if (costRatio > 0.8) {
                 // we want to keep this!
                 let spawn = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_SPAWN })
                 if (spawn) {
