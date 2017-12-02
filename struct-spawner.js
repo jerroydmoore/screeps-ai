@@ -72,6 +72,7 @@ class StructSpawners extends StructBase {
         }
 
         if (Game.time % phase.SpawnPeriod === 0 && spawner.room.energyAvailable >= phase.minimumEnergyToSpawn) {
+            
             let harvesters = _.filter(Game.creeps, (creep) => roleHarvester.is(creep)),
                 builders =  _.filter(Game.creeps, (creep) => roleBuilder.is(creep)),
                 upgraders =  _.filter(Game.creeps, (creep) => roleUpgrader.is(creep));

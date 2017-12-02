@@ -8,16 +8,17 @@ const Phases = require('phases');
 const Roads = require('roads');
 const Towers = require('struct-towers');
 const Extensions = require('struct-extensions');
-const roomUtils = require('rooms');
+const RoomUtils = require('rooms');
+const init = require('game-init');
+
 
 module.exports.loop = function () {
     let phaseNumber = Phases.getCurrentPhaseNumber(Game.spawns['Spawn1']);
     //console.log(`Game Loop ${Game.time}. Room Phase: ${phaseNumber}`)
 
-    let logger = console.log;
-    console.log = (event) => logger(`#${Game.time}[${phaseNumber}] ${event}`);
+    init(phaseNumber);
 
-    if (! Memory.recharge) Memory.recharge = {};
+    let hasTowers = {};
     for(let roomName in Game.rooms) {
 
         let room = Game.rooms[roomName],
@@ -25,6 +26,8 @@ module.exports.loop = function () {
             structures = room.find(FIND_MY_STRUCTURES, {filter: (s) => {
                 return s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_TOWER;
             } });
+
+        hasTowers[roomName] = false;
         
         // let sites = room.find(FIND_MY_CONSTRUCTION_SITES, {filter: (s) => {
         //     return s.structureType === STRUCTURE_ROAD;
@@ -38,6 +41,7 @@ module.exports.loop = function () {
                 Spawner.run(s);
             } else if (s.structureType === STRUCTURE_TOWER) {
                 Towers.run(s);
+                hasTowers[roomName] = true;
             }
         }
 
@@ -52,8 +56,6 @@ module.exports.loop = function () {
         }
     }
 
-    if (! Memory.gcl) Memory.gcl = Game.gcl.level;
-
     for(let name in Game.creeps) {
         let creep = Game.creeps[name];
 
@@ -65,7 +67,7 @@ module.exports.loop = function () {
 
         if ( creep.ticksToLive === 1) {
             creep.say('☠️ dying');
-            console.log(`${creep} died naturally.`);
+            console.log(`${creep} ${creep.pos} died naturally.`);
         }
 
         if (creep.memory.claimed === 1) {
@@ -85,7 +87,7 @@ module.exports.loop = function () {
         }
 
         if (!creep.busy && roleBuilder.is(creep)) {
-            roleBuilder.run(creep);
+            roleBuilder.run(creep, hasTowers[creep.room.name]);
             if (!creep.busy) roleHarvester.run(creep);
         }
 
@@ -102,5 +104,5 @@ module.exports.loop = function () {
     roleBuilder.gc();
     Towers.gc();
     Extensions.gc();
-    roomUtils.gc();
+    RoomUtils.gc();
 };

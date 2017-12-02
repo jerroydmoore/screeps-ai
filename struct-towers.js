@@ -1,6 +1,8 @@
 const StructBase = require('struct-base');
+const Errors = require('errors');
 const utils = require('utils');
 const AVOID_LIST = utils.AVOID_LIST;
+const RoomsUtils = require('rooms');
 
 class StructTowers extends StructBase {
     constructor() {
@@ -39,10 +41,53 @@ class StructTowers extends StructBase {
     }
     run(tower) {
         let closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+        // console.log(`${tower} - ${closestHostile}`);
         if(closestHostile) {
-            tower.attack(closestHostile);
+            if (OK === tower.attack(closestHostile)) {
+                tower.busy = 1;
+            }
         }
 
+        this.repair(tower);
+    }
+
+    repair (tower, repairThreshold=0.2, fixedThreshold=0.95) {
+        let ratio = tower.energy / tower.energyCapacity;
+        
+        if (ratio < 0.5 || tower.busy) {
+            return;
+        }
+
+        if (! Memory.towers[tower.id]) Memory.towers[tower.id] = {};
+
+        let repairId = Memory.towers[tower.id].repairId,
+            structure;
+
+        if (! repairId) {
+            structure = RoomsUtils.findLowHealthStructures(tower.room, repairThreshold);
+            if (! structure) return;
+            Memory.towers[tower.id].repairId = structure.id;
+        }
+        if ( repairId) {
+            if (! structure) {
+                structure = Game.getObjectById(repairId);
+
+                let ratio = RoomsUtils.healthRatio.call(structure);
+                if ( ratio > fixedThreshold) {
+                    structure = undefined;
+                    delete Memory.towers[tower.id].repairId;
+                }
+            }
+
+            if ( structure) {
+                let code = tower.repair(structure);
+                //this.emote(tower, '🔧 repair', code)
+                Errors.check(tower, `repair(${structure})`, code);
+                if(code === ERR_INVALID_TARGET) {
+                    delete Memory.towers[tower.id].repairId;
+                }
+            }
+        } 
         // let closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
         //     filter: (structure) => structure.hits < structure.hitsMax
         // });

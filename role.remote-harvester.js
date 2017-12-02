@@ -9,7 +9,6 @@ module.exports = {
         return creep.name.startsWith(module.exports.roleName);
     },
     findLowEnergyStructures: function (room) {
-        if (!Memory.recharge) Memory.recharge = {};
         if (!_lowEnergyStructs[room.id]) {
             _lowEnergyStructs[room.id] = room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => {
@@ -58,17 +57,8 @@ module.exports = {
 
     run: function(creep) {
 
-        if (creep.memory.full && creep.carry.energy == 0) {
-            delete creep.memory.full;
-            creep.say('🔄 harvest');
-            delete creep.memory.rechargeId;
-        }
-        if (!creep.memory.full && creep.carry.energy == creep.carryCapacity) {
-            delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
-            creep.memory.full = 1;
-            creep.say('🔋charging');
-        }
-
+        this.preRun(creep);
+        
         if (!creep.memory.full) {
             this.harvest(creep);
         } else {
@@ -109,6 +99,7 @@ module.exports = {
         if (structure) {
             creep.memory.rechargeId = structure.id;
             let code = creep.transfer(structure, RESOURCE_ENERGY);
+            this.emote(creep, '🔋charging', code);
             if (code === OK) {
                 creep.busy = 1;
             } else if (code === ERR_NO_BODYPART) {

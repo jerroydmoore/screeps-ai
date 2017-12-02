@@ -1,15 +1,8 @@
 const roleHarvester = require('role.harvester');
 const Constants = require('constants');
 const CreepsBase = require('creeps');
+const RoomsUtils = require('rooms');
 
-function healthRatio() {
-    //console.log(`${this} ratio ${this.hits/this.hitsMax} ${this.hits} ${this.hitsMax}`)
-    if( !this.hits || !this.hitsMax) return 1;
-    let res = this.hits/this.hitsMax;
-    return res;
-}
-
-let _lowHealthStructs = {};
 const role = 'Builder';
 
 class RoleBuilder extends CreepsBase {
@@ -17,28 +10,13 @@ class RoleBuilder extends CreepsBase {
         super(role);
     }
     
-    /* static */ findLowHealthStructures (room, healthRatioThreshold) {
-        if (!_lowHealthStructs[room.id]) {
-            _lowHealthStructs[room.id] = room.find(FIND_STRUCTURES, {
-                filter: (s) => {
-                    //console.log(`${s} ${s.hits} ${s.hitsMax}`)
-                    if (!s.hits || !s.hitsMax) return false;
-                    s.healthRatio = healthRatio;
-                    //if(s.healthRatio() < .75) console.log(`${s} ${s.hits/s.hitsMax}`)
-                    return s.healthRatio() < healthRatioThreshold;
-                }
-            });
-        }
-        _lowHealthStructs[room.id].sort((a,b) => a.healthRatio - b.healthRatio);
-        return _lowHealthStructs[room.id];
-    }
     repair (creep, repairThreshold=0.2, fixedThreshold=0.95) {
         let repairId = creep.memory.repairId,
             structure = undefined;
 
         if (repairId) {
             structure = Game.getObjectById(repairId);
-            let ratio = healthRatio.call(structure);
+            let ratio = RoomsUtils.healthRatio.call(structure);
 
             if ( ratio > fixedThreshold) {
                 structure = undefined;
@@ -47,21 +25,19 @@ class RoleBuilder extends CreepsBase {
         }
         
         if (!structure) {
-            let targets = this.findLowHealthStructures(creep.room, repairThreshold);
-            if (!targets.length) return;
-            targets.sort((a,b) => a.healthRatio() - b.healthRatio());
-            structure = targets.shift();
+            structure = RoomsUtils.findLowHealthStructures(creep.room, repairThreshold);
         }
         
         if (structure) {
             creep.memory.repairId = structure.id;
 
             let code = creep.repair(structure);
+            this.emote(creep, '🔧 repair', code);
             if (code === OK || code === ERR_NOT_ENOUGH_RESOURCES)  {
                 creep.busy = 1;
             }
             if(code == ERR_NOT_IN_RANGE) {
-                this.moveTo(creep, structure, '#FF0000');
+                this.moveTo(creep, structure, '#FF0000'); // red
             } else if(code === ERR_INVALID_TARGET) {
                 console.log(`${creep} cannot repair ${structure}`);
                 delete creep.memory.repairId;
@@ -90,6 +66,7 @@ class RoleBuilder extends CreepsBase {
             creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]] = target.id;
             
             let code = creep.build(target); 
+            this.emote(creep, '🚧 build', code);
             if (code === OK) {
                 creep.busy = 1;
             } else if(code == ERR_NOT_IN_RANGE) {
@@ -105,24 +82,13 @@ class RoleBuilder extends CreepsBase {
         }
     }
     
-    run (creep) {
+    run (creep, skipRepair=false) {
 
-        super.run(creep);
-
-        if(creep.memory.full && creep.carry.energy == 0) {
-            delete creep.memory.full;
-            creep.say('🔄 harvest');
-        }
-        if(!creep.memory.full && creep.carry.energy == creep.carryCapacity) {
-            delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
-            delete creep.memory.repairId;
-            creep.memory.full = 1;
-            creep.say('🚧 build');
-        }
+        this.preRun(creep);
 
         if(creep.memory.full) {
             this.build(creep);
-            if (!creep.busy) {
+            if (!creep.busy && !skipRepair) {
                 this.repair(creep);
             }
         } else {
@@ -130,7 +96,6 @@ class RoleBuilder extends CreepsBase {
         }
     }
     gc () {
-        _lowHealthStructs = {};
     }
 }
 

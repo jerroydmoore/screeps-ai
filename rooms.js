@@ -6,15 +6,44 @@ const EXIT_NAME = {
 };
 
 let _fallenResource = {};
+let _lowHealthStructs = {};
+
 module.exports = {
     EXIT_NAME: EXIT_NAME,
     EXITS: [FIND_EXIT_TOP, FIND_EXIT_RIGHT, FIND_EXIT_BOTTOM, FIND_EXIT_LEFT],
 
     gc() {
-        if (Game.tick % 7 === 0) {
+        if (Game.tick % 25 === 0) {
             _fallenResource = {};
+            _lowHealthStructs = {};
         }
     },
+
+    healthRatio() {
+        //console.log(`${this} ratio ${this.hits/this.hitsMax} ${this.hits} ${this.hitsMax}`)
+        if( !this.hits || !this.hitsMax) return 1;
+        let res = this.hits/this.hitsMax;
+        return res;
+    },
+
+    /* static */ findLowHealthStructures (room, healthRatioThreshold) {
+        // accept Room Object, RoomPosition Object, String
+        let roomName = room.name || room.roomName || room;
+
+        if (!_lowHealthStructs[roomName]) {
+            _lowHealthStructs[roomName] = room.find(FIND_STRUCTURES, {
+                filter: (s) => {
+                    if (!s.hits || !s.hitsMax) return false;
+                    s.healthRatio = this.healthRatio;
+                    return s.healthRatio() < healthRatioThreshold;
+                }
+            });
+        }
+        if (! _lowHealthStructs[roomName] || _lowHealthStructs[roomName].length === 0) return;
+        _lowHealthStructs[roomName].sort((a,b) => a.healthRatio() - b.healthRatio());
+        return _lowHealthStructs[roomName].pop();
+    },
+
     findFallenResource(roomName) {
         let room = Game.rooms[roomName];
         if ( !room) return;
@@ -23,7 +52,7 @@ module.exports = {
         }
         
         if (_fallenResource[roomName]) {
-            return _fallenResource[roomName][0];
+            return _fallenResource[roomName].pop();
         }
     },
     determineRoomName: function(roomName, exitDir) {

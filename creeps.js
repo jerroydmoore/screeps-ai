@@ -26,7 +26,7 @@ class CreepsBase {
     }
     suicide(creep) {
         // unable to move?
-        creep.say('suicide');
+        creep.say('💀 suicide');
         console.log(`${creep}${creep.pos} is suiciding`);
         creep.busy = 1;
         creep.suicide();
@@ -67,36 +67,67 @@ class CreepsBase {
 
     pickupFallenResource(creep) {
 
-        
-        let resource = RoomUtils.findFallenResource(creep.pos.roomName);
-        if ( !resource) return;
+        let resource;
+        if (!creep.memory.fallenResourceId) {
+            resource = RoomUtils.findFallenResource(creep.pos.roomName);
+        } else {
+            try {
+                resource = Game.getObjectById(creep.memory.fallenResourceId);
+            } catch (err) {
+                // Object was already picked up.
+            }
+        }
+        if (!resource) {
+            delete creep.memory.fallenResourceId;
+            return false;
+        }
 
-        creep.busy = 1;
-
+        creep.memory.fallenResourceId = resource.id;
         let code = creep.pickup(resource);
+        if (this.emote(creep, '👏️ pickup')) {
+            console.log(`${creep} ${creep.pos} pick up resource at ${resource.pos}`);
+        }
         if (code === ERR_NOT_IN_RANGE) {
-            this.moveTo(creep, creep.memory.pickupPos, '#ffaa00');
+            this.moveTo(creep, resource.pos, '#ffaa00');
         } else if (code === OK) {
-            console.log('picked up');
+            delete creep.memory.fallenResourceId;
             creep.busy = 1;
         } else {
-            //delete creep.memory.pickupPos;
-            Errors.check(creep, `pickup(${creep.memory.pickupPos})`, code);
+            delete creep.memory.fallenResourceId;
+            Errors.check(creep, `pickup(${resource} ${resource.pos})`, code);
+            return false;
         }
+        return true;
+    }
+    emote (creep, phrase, code=OK, errorList=[OK, ERR_NOT_IN_RANGE]) {
+        if ( !phrase || creep.memory._say === phrase) return false;
+        if (undefined ===errorList.find(c => c === code) ) return false;
+
+        if (OK === creep.say(phrase)) {
+            creep.memory._say = phrase;
+            return true;
+        }
+        return false;
     }
 
     harvest (creep) {
+
+        if (creep.busy) return;
+        
         let sourceId = creep.memory[Constants.MemoryKey[LOOK_SOURCES]],
             source = undefined;
         if (sourceId) {
             source = Game.getObjectById(sourceId);
-        } else {
-            this.pickupFallenResource(creep);
+        } else if (! this.pickupFallenResource(creep)) {
             source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
         }
         if (source) {
             creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
+
             let code = creep.harvest(source);
+
+            this.emote(creep, '🔄 harvest', code);
+
             if (code === ERR_NOT_IN_RANGE) {
                 code = this.moveTo(creep, source, '#ffaa00'); //orange
                 // What about using Storage???
@@ -106,9 +137,8 @@ class CreepsBase {
                 // unable to harvest?
                 this.suicide(creep);
             }
-        } else {
+        } else if (! creep.busy && this.emote(creep, '😰 No Srcs')) {
             console.log(`${creep} at ${creep.pos} could not find any available sources`);
-            creep.say('😰 No Srcs');
         }
         creep.busy = 1;
     }
@@ -146,54 +176,104 @@ class CreepsBase {
         return Math.ceil(cost/2.5/body_size);
     }
 
-    run (creep) {
-        this.shouldRenew(creep);
+    preRun (creep) {
+
+        if(creep.memory.full && creep.carry.energy == 0) {
+            delete creep.memory.full;
+            delete creep.memory.rechargeId;
+            this.checkRenewOrRecycle(creep);
+        }
+        this.tryRenewOrRecycle(creep);
+
+        if(!creep.memory.full && creep.carry.energy == creep.carryCapacity) {
+            delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
+            delete creep.memory.repairId;
+            creep.memory.full = 1;
+        }
     }
-    shouldRenew(creep) {
-        // Check if we need to heal.
+
+    run (creep) {
+        console.log(creep + ': ' + this.roleName + ' does not have a run action defined');
+    }
+
+    checkRenewOrRecycle(creep) {
+        // Check if we need to be renewed or recycled
         let capacity = creep.room.energyCapacityAvailable,
             energy = creep.room.energyAvailable,
             energyRatio = energy / capacity;
 
-        if (!creep.memory.renew && creep.ticksToLive < 200 && (energyRatio >= 0.8 || energy > 600)) {
+        // if (creep.ticksToLive < 200)
+        //     console.log(`${creep} ${creep.pos} - ${creep.ticksToLive} ratio: ${energyRatio} avail. energy: ${energy} ${creep.memory.recycle} ${creep.memory.renew}`);
+
+        if (!creep.memory.recycle && !creep.memory.renew && creep.ticksToLive < 200 && (energyRatio >= 0.8 || energy > 600)) {
             let parts = creep.body.map(x => x.type),
                 cost = this.bodyPartCost(parts);
-            //let renewCost = this.bodyPartRenewCost(parts);
+            // let renewCost = this.bodyPartRenewCost(parts);
             
             if (capacity > 700) capacity = 700; // cap it
             let costRatio = cost / capacity;
 
+            let spawn = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_SPAWN });
+
+            if ( !spawn) {
+                creep.memory.renew = -1;
+                creep.memory.recycle = -1;
+                console.log('cannot renew ${creep} in room ${creep.room}: no spawner found');
+            }
+
             if (costRatio > 0.8) {
                 // we want to keep this!
-                let spawn = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_SPAWN });
-                if (spawn) {
-                    creep.memory.renew = spawn.id;
-                    creep.say('⛑ Healing');
-                    //console.log(`Renewing ${creep} renew cost ${renewCost} rebuild cost ${cost} capacity ${capacity} ratio ${ratio}`)
-                } else {
-                    creep.memory.renew = -1;
-                    console.log('cannot renew ${creep} in room ${creep.room}: no spawner found');
-                }
+                creep.memory.renew = spawn.id;
+                // console.log(`Renewing ${creep} renew cost ${renewCost} rebuild cost ${cost} capacity ${capacity} ratio ${costRatio}`);
+            } else {
+                // Recycle the creep
+                creep.memory.recycle = spawn.id;
+                // console.log(`Recycling ${creep} renew cost ${renewCost} rebuild cost ${cost} capacity ${capacity} ratio ${costRatio}`);
             }
         }
-        if (creep.memory.renew && creep.memory.renew !== -1) {
-            let spawn = Game.getObjectById(creep.memory.renew);
-            let code = spawn.renewCreep(creep);
+    }
+
+    tryRenewOrRecycle(creep) {
+        let isRenew = (!creep.memory.renew || creep.memory.renew === -1);
+        let isRecycle = (!creep.memory.recycle || creep.memory.recycle === -1);
+        
+        if (isRenew && isRecycle) {
+            return;
+        }
+        
+        let actions = ['recycle', 'renew'];
+        let phrases = ['♻️ Recycling', '⛑ Healing'];
+        for(let i=0;i<actions.length;i++) {
+            let ret = this.checkSpawnCreeperAction(creep, actions[i], phrases[i]);
+            if (ret !== false) {
+                return ret;
+            }
+        }
+
+        return false;
+    }
+    checkSpawnCreeperAction(creep, action, phrase) {
+        if (creep.memory[action] && creep.memory[action] !== -1) {
+            
+            let spawn = Game.getObjectById(creep.memory[action]);
+            let code = spawn[action +'Creep'](creep);
+            this.emote(creep, phrase, code);
+
             if (code === OK) {
                 creep.busy = 1;
             } else if (code === ERR_NOT_IN_RANGE || code === ERR_BUSY) {
                 this.moveTo(creep, spawn, '#FFFFFF');
             } else if (code === ERR_FULL || code === ERR_NOT_ENOUGH_ENERGY) {
-                delete creep.memory.renew;
+                delete creep.memory[action];
             } else {
-                Errors.check(spawn, `renewCreep(${creep})`, code);
-                creep.memory.renew = -1;
+                Errors.check(spawn, `${action}(${creep})`, code);
+                creep.memory[action] = -1;
             }
             return code;
         }
         return false;
-
     }
+
     moveToNextRoom (creep, hostiles=false) {
         let target,
             roomName = creep.pos.roomName;

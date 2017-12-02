@@ -9,9 +9,9 @@ class RolePilgrim extends CreepsBase {
         super(role);
     }
     run (creep) {
+        // this.preRun()
 
         let roomName = creep.pos.roomName;
-        if (! Memory.rooms) Memory.rooms = {};
         if (! creep.memory.prevRoom) {
             creep.memory.prevRoom = roomName;
         }

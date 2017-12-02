@@ -12,9 +12,11 @@ class RoleScout extends CreepsBase {
         if (closestHostile) {
             Memory.rooms[creep.pos.roomName].hasEnemy = 1;
             let code = creep.attack(closestHostile);
+            if (this.emote(creep, '⚔️ attack!', code)) {
+                console.log(`${creep} ${creep.pos} attacking ${closestHostile} ${closestHostile.pos}`);
+            }
             if (code === OK) {
                 creep.busy = 1;
-                creep.say('😡 attack!');
                 return code;
             } else if (code === ERR_NOT_IN_RANGE) {
                 this.moveTo(creep, closestHostile);
@@ -31,7 +33,9 @@ class RoleScout extends CreepsBase {
             let code = creep.attack(closestHostile);
             if (code === OK) {
                 creep.busy = 1;
-                creep.say('😡 attack!');
+                if (this.emote(creep, '⚔️ attack!', code)) {
+                    console.log(`${creep} ${creep.pos} attacking ${closestHostile} ${closestHostile.pos}`);
+                }
                 return code;
             } else if (code === ERR_NOT_IN_RANGE) {
                 this.moveTo(creep, closestHostile);
@@ -44,7 +48,7 @@ class RoleScout extends CreepsBase {
         Memory.rooms[creep.pos.roomName].hasEnemy = 0;
     }
     run (creep) {
-        // return;
+        // this.preRun()
 
         let roomName = creep.pos.roomName;
         if (! Memory.rooms) Memory.rooms = {};

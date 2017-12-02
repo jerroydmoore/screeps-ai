@@ -12,26 +12,17 @@ class RoleUpgrader extends CreepsBase {
     
     run (creep) {
 
-        super.run(creep);
+        this.preRun(creep);
 
         // if we just spawned. Find the closest source to the controller and remember it.
         if (! creep.memory[Constants.MemoryKey[LOOK_SOURCES]] && !creep.memory.full) {
             let pos = utils.findFreeAdjecentPos(creep.room.controller),
                 source = pos.findClosestByPath(FIND_SOURCES);
-            if (!source) {
-                creep.say('🚦 stuck');
-                console.log(`${creep} cannot find a source`);
-            } else {
+            if (source) {
                 creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
+            } else if (this.emote(creep, '🚦 stuck')) {
+                console.log(`${creep} cannot find a source`);
             }
-        }
-        if (creep.memory.full && creep.carry.energy == 0) {
-            delete creep.memory.full;
-            creep.say('🔄 harvest');
-        }
-        if (!creep.memory.full && creep.carry.energy == creep.carryCapacity) {
-            creep.memory.full = 1;
-            creep.say('⚡ upgrade');
         }
 
         if(creep.memory.full) {
@@ -45,6 +36,7 @@ class RoleUpgrader extends CreepsBase {
                 console.log(`${creep} attempting to upgrade at a ${controller} not owned by us!`);
             }
             let code = creep.upgradeController(controller);
+            this.emote(creep, '⚡ upgrade');
             if (code === OK) {
                 creep.busy = 1;
             } else if (code === ERR_NOT_IN_RANGE) {
