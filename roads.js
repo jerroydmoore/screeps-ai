@@ -1,4 +1,5 @@
 const Errors = require('errors');
+const BuildOrders = require('build-orders');
 
 function pruneBallots(ballots, expiration) {
     return ballots.filter(t => t + expiration > Game.time);
@@ -9,7 +10,8 @@ const Road = {
     buildAt(target) {
         let pos = target.pos || target,
             room = target.room || Game.rooms[pos.roomName];
-        return room.createConstructionSite(pos, STRUCTURE_ROAD);
+        
+        return BuildOrders.schedule(room, STRUCTURE_ROAD, pos);
     },
     shouldBuildAt: function(target) {
 
@@ -20,7 +22,6 @@ const Road = {
         }
         if (!this.haveRoad(target) && this.voteForRoad(target, ELECTION_THRESHOLD, VOTE_EXPIRATION)) {
             target.say('🏗 road');
-            console.log(`Creating road at ${target.pos}`);
             return OK === this.buildAt(target);
         }
         return false;
@@ -35,6 +36,9 @@ const Road = {
             return (o.type === LOOK_CONSTRUCTION_SITES && o.constructionSite.structureType === STRUCTURE_ROAD)
                 || (o.type === LOOK_STRUCTURES && o.structure.structureType === STRUCTURE_ROAD);
         });
+
+        // We do not need the check the build schedule,
+        // because the BuildOrders.schedule checks it for us
 
         return res !== undefined;
     },
@@ -69,15 +73,12 @@ const Road = {
         if(!destinations || destinations.length === 0) return;
 
         let targetPos = target.pos || target;
-        //target = utils.findFreeAdjecentPos(target);
         destinations.forEach((dest) => {
             let pos = dest.pos || dest;
-            // let pos = utils.findFreeAdjecentPos(dest),
-            //     path = target.findPathTo(pos);
             
             let res = PathFinder.search(targetPos, {pos, range: 1}, {
                 maxRooms: 1,
-                swampCost: 2,
+                swampCost: 4,
                 plainCost: 2,
                 roomCallback: (roomName) => {
                     let room = Game.rooms[roomName];
@@ -106,19 +107,29 @@ const Road = {
                             costs.set(struct.pos.x, struct.pos.y, 0xff);
                         }
                     });
-                }});
+
+                    // Read through the scheduled build orders
+                    // Try to reuse roads scheduled to be built
+                    // Avoid spaces with planned structures 
+                    let orders = BuildOrders.getAllScheduled(room);
+                    orders.forEach(order => {
+                        let cost = (order.type === STRUCTURE_ROAD) ? 1 : 0xff;
+                        costs.set(order.pos.x, order.pos.y, cost);
+                    });
+
+                    return costs;
+                }
+            });
             let path = res.path;
 
             path.forEach((point) => {
-                //let point = new RoomPosition(_point.x, _point.y, room.name);
                 if (this.haveRoad(point)) return;
-                let code = this.buildAt(point);
-                Errors.check(point, 'createRoad', code);
+                this.buildAt(point);
             });
         });
     },
-    gc: function() {
-        if (Memory.roads && Game.time % 1000 === 0) {
+    gc: function(force) {
+        if (force || Memory.roads && Game.time % 1000 === 0) {
             // let howmanyAddr = 0, delAddr = 0, deltaBallots = 0;
             for(let addr in Memory.roads) {
                 // howmanyAddr++;

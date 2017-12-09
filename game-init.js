@@ -8,6 +8,7 @@ module.exports = function(phaseNumber) {
 
     if (! Memory.recharge) Memory.recharge = {};
     if (! Memory.decon) Memory.decon = {};
+    if (! Memory.con) Memory.con = {};
     if (! Memory.rooms) Memory.rooms = {};
     if (! Memory.towers) Memory.towers = {};
 };

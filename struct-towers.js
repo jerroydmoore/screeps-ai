@@ -6,20 +6,21 @@ const RoomsUtils = require('rooms');
 
 class StructTowers extends StructBase {
     constructor() {
-        super(STRUCTURE_TOWER);
-        this.minFreeAdjSpaces = 3,
-        this.minPlacementDistance = 7,
-        this.avoidList = [AVOID_LIST[LOOK_SOURCES], AVOID_LIST[STRUCTURE_TOWER]];
+        super(STRUCTURE_TOWER, {
+            minFreeAdjSpaces: 3,
+            minPlacementDistance: 7,
+            avoidList: [AVOID_LIST[LOOK_SOURCES], AVOID_LIST[STRUCTURE_TOWER]]
+        });
     }
     * getBuildingPointsOfInterests (room) {
-        // tower 1 at controller
-        yield room.controller;
-
-        // then all sources get a tower
+        // build next to Source to be able to charge quickly
         let s = room.find(FIND_SOURCES);
         for (let i=0;i<s.length;i++) {
             yield s[i];
         }
+
+        // then controller
+        yield room.controller;
 
         // then the spawners get a tower
         s = room.find(FIND_MY_STRUCTURES, { filter: (s) => s.type === STRUCTURE_SPAWN });
@@ -29,7 +30,7 @@ class StructTowers extends StructBase {
         // then spawn at entrances
         // check each separately, to make sure at least each entrances gets one spawned.
         // this doesn't exactly work. because it will places as many towers in one area before checking the next
-        // TODO generator should return desired number of things in a place
+        // TODO generator should return dered number of things in a place
         let searchParam = [ FIND_EXIT_TOP, FIND_EXIT_RIGHT, FIND_EXIT_BOTTOM, FIND_EXIT_LEFT ];
         for(let j=0;j<searchParam.length;j++) {
             s = room.find(searchParam[j]);

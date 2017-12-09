@@ -9,7 +9,11 @@ const Roads = require('roads');
 const Towers = require('struct-towers');
 const Extensions = require('struct-extensions');
 const RoomUtils = require('rooms');
+const BuildOrders = require('build-orders');
 const init = require('game-init');
+
+require('extends_roompositions');
+require('extends_rooms');
 
 
 module.exports.loop = function () {
@@ -45,6 +49,10 @@ module.exports.loop = function () {
             }
         }
 
+        // release new work for the builders if possible
+        BuildOrders.execute(room);
+
+        // Claimed a new room, build a spawner
         if (!hasSpawner && room.controller.my) {
             let sites = Spawner.getMySites(room);
             if(sites.length === 0) {
@@ -105,4 +113,5 @@ module.exports.loop = function () {
     Towers.gc();
     Extensions.gc();
     RoomUtils.gc();
+    BuildOrders.gc();
 };

@@ -1,3 +1,10 @@
+function findStructureAndSiteByType (desiredStructureType) {
+    return function (o) {
+        return (o.type === LOOK_STRUCTURES && o.structure.structureType === desiredStructureType)
+            || (o.type === LOOK_CONSTRUCTION_SITES && o.constructionSite.structureType === desiredStructureType);
+    };
+}
+
 module.exports = {
     getNearby: function(room, pos, range, asArray=true) {
         return room.lookAtArea(
@@ -34,14 +41,18 @@ module.exports = {
         }
         return new RoomPosition(obj.x, obj.y, room.name);
     },
+    findStructureAndSiteByType: findStructureAndSiteByType,
     AVOID_LIST: {
-        [STRUCTURE_EXTENSION]: { range: 2, filter: (o) => (o.type === LOOK_STRUCTURES && o.structure.structureType === STRUCTURE_EXTENSION) || (o.type === LOOK_CONSTRUCTION_SITES && o.constructionSite.structureType === STRUCTURE_EXTENSION)},
-        [STRUCTURE_TOWER]: { range: 7, filter: (o) => (o.type === LOOK_STRUCTURES && o.structure.structureType === STRUCTURE_EXTENSION) || (o.type === LOOK_CONSTRUCTION_SITES && o.constructionSite.structureType === STRUCTURE_EXTENSION)},
-        [LOOK_SOURCES]: {range : 1, filter: (o) => o.type === LOOK_SOURCES }
+        [STRUCTURE_EXTENSION]: { range: 2, filter: findStructureAndSiteByType(STRUCTURE_EXTENSION) },
+        [STRUCTURE_TOWER]: { range: 7, filter: findStructureAndSiteByType(STRUCTURE_TOWER) },
+        [LOOK_SOURCES]: { range : 1, filter: (o) => o.type === LOOK_SOURCES }
     },
-    findFreePosNearby: function (roomObj, range, howmany, numOfFreeAdjecentSpaces=3, avoidEachOtherRange=2, avoidList=[]) {
-        let pos = roomObj.pos,
-            room = roomObj.room;
+    findFreePosNearby: function* (target, _range, numOfFreeAdjecentSpaces=3, avoidEachOtherRange=2, avoidList=[]) {
+        let pos = target.pos || target,
+            room = target.room,
+            range = _range+1;
+
+        //console.log('findFreePosNearby(' + target + pos + _range);
 
         const FREE = 0, FREE_BUT_DISQUALIFIED = 1, OCCUPIED = 2, AVOID_AREA = 3;
         const FREE_ENTRY = {type: FREE, range: 0};
@@ -49,18 +60,29 @@ module.exports = {
         const OCCUPIED_ENTRY = {type: OCCUPIED, range: 0};
         avoidList.forEach(x => x.type = AVOID_AREA);
 
-        // We can't use findPath* functions if pos is not free
-        if (this.isWallTerrain(pos)) {
-            pos = this.findFreeAdjecentPos(roomObj);
-        }
-
         // start in a corner and work across
-        let matrix = this.getNearby(room, pos, range, false);
+        let matrix = this.getNearby(room, pos, range, false),
+            // we want to mark the border as a DISQUALIFIED_ENTRY
+            iKeys = Object.keys(matrix),
+            iLimit = [iKeys[0], iKeys[iKeys.length-1]],
+            jKeys = Object.keys(matrix[iKeys[0]]),
+            jLimit = [jKeys[0], jKeys[jKeys.length-1]];
+
         for (let i in matrix) {
             for (let j in matrix[i]) {
+                let initialValue = FREE_ENTRY;
+                if (iLimit.find(x => x === i) || jLimit.find(x => x === j)) {
+                    initialValue = DISQUALIFIED_ENTRY;
+                }
                 matrix[i][j] = matrix[i][j].reduce((res, o) => {
-                    if (res.type !== AVOID_AREA && ((o.type === 'terrain' && o.terrain === 'wall') || o.type === 'structure' || o.type === 'constructionSite')) {
-                        res = OCCUPIED_ENTRY;
+                    if (res.type !== AVOID_AREA) {
+                        if (o.type === 'terrain' && o.terrain === 'wall') {
+                            res = OCCUPIED_ENTRY;
+                        } else if (o.type === 'structure' && o.structure.structureType !== STRUCTURE_ROAD) {
+                            res = OCCUPIED_ENTRY;
+                        } else if (o.type === 'constructionSite'  && o.constructionSite.structureType !== STRUCTURE_ROAD) {
+                            res = OCCUPIED_ENTRY;
+                        }
                     }
                     avoidList.forEach((avoidEntry) => {
                         // Check for range, bc if two avoids match, take the bigger of the two
@@ -69,7 +91,7 @@ module.exports = {
                         }
                     });
                     return res;
-                }, FREE_ENTRY);
+                }, initialValue);
             }
         }
 
@@ -80,56 +102,58 @@ module.exports = {
                 j = parseInt(j);
                 if (matrix[i][j].type === AVOID_AREA) {
                     this.markNearby(matrix, i, j, [FREE_ENTRY], DISQUALIFIED_ENTRY, matrix[i][j].range);
-                } else if (matrix[i][j] === FREE_ENTRY) {
+                } else if (matrix[i][j].type === FREE) {
+
                     // check candidate for tight spaces
                     let x = this.correctInvalidCoord(i-1);
                     let xlen = this.correctInvalidCoord(i+1);
                     let yLower = this.correctInvalidCoord(j-1);
                     let yUpper = this.correctInvalidCoord(j+1);
-                    let freeSpace = -1; //don't count the candidate
+                    let freeSpace = 8;
                     for(;x<=xlen;x++) {
                         for(let y=yLower;y<=yUpper;y++) {
                             if (x === i && y === j) continue;
-                            if (!matrix[x] || matrix[x][y] === FREE_ENTRY || matrix[x][y] === DISQUALIFIED_ENTRY) {
-                                freeSpace++;
+                            if (! matrix[x] || !matrix[x][y]) {
+                                continue;
+                            }
+
+                            if (matrix[x][y].type === OCCUPIED || matrix[x][y].type === AVOID_AREA) {
+                                freeSpace--;
                             }
                             if (freeSpace >= numOfFreeAdjecentSpaces) break;
                         }
                         if (freeSpace >= numOfFreeAdjecentSpaces) break;
                     }
+
                     if (freeSpace < numOfFreeAdjecentSpaces) { 
                         matrix[i][j] = DISQUALIFIED_ENTRY;
                     }
                 }
             }
         }
-        let arr = [];
+        
+        // yield free spaces
         for (let i in matrix) {
             i = parseInt(i);
             for (let j in matrix[i]) {
                 j = parseInt(j);
-                if (matrix[i][j] === FREE_ENTRY) {
-                    arr.push([j, i]); // swap i and j to be compatible with Screep convention
-                    // update the matrix with the newly placed "thing"
-                    this.markNearby(matrix, i, j, [FREE_ENTRY], DISQUALIFIED_ENTRY, avoidEachOtherRange);
-                }
+                if (matrix[i][j] !== FREE_ENTRY) continue;
+
+                // Swap i and j to be compatible with Screep convention
+                let freePos = new RoomPosition(j, i, room.name),
+                    pathFinder = PathFinder.search(freePos, {pos, range: 1}),
+                    path = pathFinder.path,
+                    distance = path.length;
+
+                // Check path's distance < desired range, e.g. a wall between us, forcing us to go the long way
+                if (distance > range) continue;
+
+                yield freePos;
+
+                // Update the matrix with the newly placed "thing"
+                this.markNearby(matrix, i, j, [FREE_ENTRY], DISQUALIFIED_ENTRY, avoidEachOtherRange);
             }
         }
-        
-        //check path's distance < desired range, e.g. a wall between us, forcing us to go the long way
-        arr = arr.map(x => new RoomPosition(x[0], x[1], room.name))
-            .filter(target => {
-                if (howmany == 0) return false; //we have enough confirmed free spaces
-
-                let path = target.findPathTo(pos),
-                    distance = path.length;
-                if (distance <= range) {
-                    howmany--;
-                    return true;
-                }
-                return false;
-            });
-        return arr;
     },
     markNearby: function(matrix, i, j, replacementMembers, newValue, range) {
         let x = this.correctInvalidCoord(i-range),

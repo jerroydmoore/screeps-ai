@@ -4,6 +4,7 @@ const Roads = require('roads');
 const utils = require('utils');
 const Phases = require('phases');
 const Constants = require('constants');
+const BuildOrders = require('build-orders');
 
 // already declared
 // const BODYPART_COST = {

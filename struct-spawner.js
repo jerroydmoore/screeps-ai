@@ -14,11 +14,13 @@ const StructTowers = require('struct-towers');
 
 class StructSpawners extends StructBase {
     constructor() {
-        super(STRUCTURE_SPAWN);
-        this.minFreeAdjSpaces = 3;
-        this.minPlacementDistance = 3;
         let modifiedSource = Object.assign({}, AVOID_LIST[LOOK_SOURCES], {range: 5});
-        this.avoidList = [ modifiedSource, AVOID_LIST[STRUCTURE_TOWER] ];
+        
+        super(STRUCTURE_SPAWN, {
+            minFreeAdjSpaces: 3,
+            minPlacementDistance: 3,
+            avoidList: [ modifiedSource, AVOID_LIST[STRUCTURE_TOWER] ]
+        });
     }
     * getBuildingPointsOfInterests (room) {
         // criteria:
