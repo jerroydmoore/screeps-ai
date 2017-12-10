@@ -49,15 +49,23 @@ class StructTowers extends StructBase {
             }
         }
 
-        this.repair(tower);
+        let ratio = tower.energy / tower.energyCapacity;
+        if (ratio >= 0.5 && !tower.busy) {
+            let threshold = this.getThreshold(ratio);
+            this.repair(tower, threshold);
+        }
     }
 
-    repair (tower, repairThreshold=0.2, fixedThreshold=0.95) {
-        let ratio = tower.energy / tower.energyCapacity;
-        
-        if (ratio < 0.5 || tower.busy) {
-            return;
-        }
+    getThreshold(ratio, minRatio=.75, min=0.2, max=0.8) {
+
+        // if ratio is below min, cofficient is zero.
+        let coefficient = Math.max(0, 4 * (ratio - minRatio)),
+            threshold = min + (coefficient * (max - min));
+
+        return Math.max(0, threshold);
+    }
+
+    repair (tower, repairThreshold=0.2, desiredHealthPercent=0.95) {
 
         if (! Memory.towers[tower.id]) Memory.towers[tower.id] = {};
 
@@ -74,7 +82,7 @@ class StructTowers extends StructBase {
                 structure = Game.getObjectById(repairId);
 
                 let ratio = RoomsUtils.healthRatio.call(structure);
-                if ( ratio > fixedThreshold) {
+                if ( ratio > desiredHealthPercent) {
                     structure = undefined;
                     delete Memory.towers[tower.id].repairId;
                 }

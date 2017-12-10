@@ -26,7 +26,7 @@ module.exports = {
         return res;
     },
 
-    /* static */ findLowHealthStructures (room, healthRatioThreshold) {
+    /* static */ findLowHealthStructures (room, structureThreshold, roadThreshold=0.2) {
         // accept Room Object, RoomPosition Object, String
         let roomName = room.name || room.roomName || room;
 
@@ -35,10 +35,14 @@ module.exports = {
                 filter: (s) => {
                     if (!s.hits || !s.hitsMax) return false;
                     s.healthRatio = this.healthRatio;
-                    return s.healthRatio() < healthRatioThreshold;
+                    let threshold = (s.structureType === STRUCTURE_ROAD) ? roadThreshold : structureThreshold;
+
+                    return s.healthRatio() < threshold;
                 }
             });
         }
+        console.log('lowHealth ' + _lowHealthStructs[roomName].length)
+        
         if (! _lowHealthStructs[roomName] || _lowHealthStructs[roomName].length === 0) return;
         _lowHealthStructs[roomName].sort((a,b) => a.healthRatio() - b.healthRatio());
         return _lowHealthStructs[roomName].pop();
