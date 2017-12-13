@@ -1,5 +1,4 @@
 const roleHarvester = require('role.harvester');
-const Constants = require('constants');
 const CreepsBase = require('creeps');
 const RoomsUtils = require('rooms');
 
@@ -53,7 +52,7 @@ class RoleBuilder extends CreepsBase {
     }
     build (creep) {
 
-        let targetId = creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]],
+        let targetId = creep.memory.cId,
             target = undefined;
         
         if (targetId) {
@@ -63,7 +62,7 @@ class RoleBuilder extends CreepsBase {
         }
 
         if (target) {
-            creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]] = target.id;
+            creep.memory.cId = target.id;
             
             let code = creep.build(target); 
             this.emote(creep, '🚧 build', code);
@@ -72,19 +71,17 @@ class RoleBuilder extends CreepsBase {
             } else if(code == ERR_NOT_IN_RANGE) {
                 this.moveTo(creep, target, '#ffe56d');
             } else if(code === ERR_INVALID_TARGET) {
-                delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]];
+                delete creep.memory.cId;
             } else if (code === ERR_NO_BODYPART) {
                 // unable to build?
                 this.suicide(creep);
             }
         } else if(targetId) {
-            delete creep.memory[Constants.MemoryKey[LOOK_CONSTRUCTION_SITES]];
+            delete creep.memory.cId;
         }
     }
     
     run (creep, skipRepair=false) {
-
-        this.preRun(creep);
 
         if(creep.memory.full) {
             this.build(creep);

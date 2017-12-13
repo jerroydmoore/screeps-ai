@@ -1,5 +1,3 @@
-const Constants = require('constants');
-
 let _lowEnergyStructs = {};
 
 module.exports = {
@@ -29,7 +27,7 @@ module.exports = {
 
     harvest: function(creep) {
 
-        let sourceId = creep.memory[Constants.MemoryKey[LOOK_SOURCES]],
+        let sourceId = creep.memory.sId,
             source = undefined;
         if (sourceId) {
             source = Game.getObjectById(sourceId);
@@ -37,13 +35,13 @@ module.exports = {
             source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
         }
         if (source) {
-            creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
+            creep.memory.sId = source.id;
             let code = creep.harvest(source);
             if (code === ERR_NOT_IN_RANGE) {
                 code = this.moveTo(creep, source, '#ffaa00'); //orange
                 // What about using Storage???
             } else if (code === ERR_NOT_ENOUGH_RESOURCES) {
-                delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
+                delete creep.memory.sId;
             } else if (code === ERR_NO_BODYPART) {
                 // unable to harvest?
                 this.suicide(creep);
@@ -56,9 +54,6 @@ module.exports = {
     },
 
     run: function(creep) {
-
-        this.preRun(creep);
-        
         if (!creep.memory.full) {
             this.harvest(creep);
         } else {

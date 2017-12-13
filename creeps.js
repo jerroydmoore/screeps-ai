@@ -3,8 +3,6 @@ const RoomUtils = require('rooms');
 const Roads = require('roads');
 const utils = require('utils');
 const Phases = require('phases');
-const Constants = require('constants');
-const BuildOrders = require('build-orders');
 
 // already declared
 // const BODYPART_COST = {
@@ -86,7 +84,11 @@ class CreepsBase {
         creep.memory.fallenResourceId = resource.id;
         let code = creep.pickup(resource);
         if (this.emote(creep, '👏️ pickup')) {
-            console.log(`${creep} ${creep.pos} pick up resource at ${resource.pos}`);
+            try {
+                console.log(`${creep} ${creep.pos} pick up ${resource.amount} ${resource.resourceType} at ${resource.pos}`);
+            } catch(ex) {
+                // ignore errors thrown
+            }
         }
         if (code === ERR_NOT_IN_RANGE) {
             this.moveTo(creep, resource.pos, '#ffaa00');
@@ -95,7 +97,12 @@ class CreepsBase {
             creep.busy = 1;
         } else {
             delete creep.memory.fallenResourceId;
-            Errors.check(creep, `pickup(${resource} ${resource.pos})`, code);
+            try {
+                // If the resource no longer exists, this will throw an error
+                Errors.check(creep, `pickup(${resource} ${resource.pos})`, code);
+            } catch(ex) {
+                // ignore error
+            }
             return false;
         }
         return true;
@@ -111,21 +118,43 @@ class CreepsBase {
         return false;
     }
 
-    harvest (creep) {
+    harvest (creep, sourceId, ignoreContainers) {
+        // sourceId is optional.
+        // Gives you the option to override the "find Closest" logic
+        let source = undefined;
 
         if (creep.busy) return;
         
-        let sourceId = creep.memory[Constants.MemoryKey[LOOK_SOURCES]],
-            source = undefined;
+        if(! sourceId && creep.memory.sId) {
+            sourceId = creep.memory.sId;
+        }
         if (sourceId) {
             source = Game.getObjectById(sourceId);
         } else if (! this.pickupFallenResource(creep)) {
-            source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+            if (! ignoreContainers) {
+                source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    filter: (s) => {
+                        if (s.structureType === 'storage' || s.structureType === 'container') {
+                            return s.store[RESOURCE_ENERGY] >= creep.carryCapacity;
+                        }
+                        return false;
+                    }
+                });
+                // console.log(`${creep} withdraw ${source}`);
+            }
+            if (! source) {
+                source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+            }
         }
         if (source) {
-            creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
-
-            let code = creep.harvest(source);
+            creep.memory.sId = source.id;
+            let code;
+            if (source instanceof Source || source instanceof Mineral) {
+                // is a Source or Mineral
+                code = creep.harvest(source);
+            } else {
+                code = creep.withdraw(source, RESOURCE_ENERGY);
+            }
 
             this.emote(creep, '🔄 harvest', code);
 
@@ -133,7 +162,7 @@ class CreepsBase {
                 code = this.moveTo(creep, source, '#ffaa00'); //orange
                 // What about using Storage???
             } else if (code === ERR_NOT_ENOUGH_RESOURCES) {
-                delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
+                delete creep.memory.sId;
             } else if (code === ERR_NO_BODYPART) {
                 // unable to harvest?
                 this.suicide(creep);
@@ -143,6 +172,38 @@ class CreepsBase {
         }
         creep.busy = 1;
     }
+
+    shouldSpawn(spawner) {
+        let roomName = spawner.room.name,
+            creeps = _.filter(Game.creeps, creep => roomName === creep.room.name && this.is(creep)),
+            count = creeps.length,
+            phase = Phases.getCurrentPhaseInfo(spawner),
+            phaseRole = phase[this.roleName];
+
+        if (! phaseRole) {
+            console.log(`No entry for role ${this.roleName} in Phase ${phase.level}`);
+            return false;
+        }
+
+        let desiredCount = 0;
+        if (typeof phaseRole.count === 'number') {
+            desiredCount = phaseRole.count;
+        } else if(phaseRole.count === LOOK_SOURCES) {
+            let objs = spawner.room.find(FIND_SOURCES) || [];
+            desiredCount = objs.length || 0;
+        } else {
+            console.log(`count for role ${this.roleName} in Phase ${phase.level} needs to be a string or number: ${typeof phaseRole.count}`);
+        }
+
+
+        let hasEnoughEnergy = true;
+        if (phase[this.roleName].minimumEnergyToSpawn) {
+            // optional field, if set will overwrite the phase minimumEnergyToSpawn
+            hasEnoughEnergy = phase[this.roleName].minimumEnergyToSpawn < spawner.room.energyAvailable;
+        }
+        return count < desiredCount && hasEnoughEnergy;
+    }
+
     spawn (spawner) {
         let phase = Phases.getCurrentPhaseInfo(spawner),
             availableBodyParts = phase[this.roleName].parts,
@@ -160,7 +221,7 @@ class CreepsBase {
         }
         
         let label = this.roleName + Game.time;
-        console.log(`Spawning ${label} ` + JSON.stringify(bodyParts) + ` cost ${cost}/${spawner.room.energyAvailable}`);
+        // console.log(`Spawning ${label} ` + JSON.stringify(bodyParts) + ` cost ${cost}/${spawner.room.energyAvailable}`);
         let code = spawner[action](bodyParts, label);
         Errors.check(spawner, action, code);
         utils.gc(); // garbage collect the recently deseased creep
@@ -179,15 +240,27 @@ class CreepsBase {
 
     preRun (creep) {
 
+        if (!creep.memory.origin) {
+            creep.memory.origin = creep.room.controller.id;
+        }
+
+        if ( creep.ticksToLive === 1) {
+            creep.say('☠️ dying');
+            // console.log(`${creep} ${creep.pos} died naturally.`);
+            for(const resourceType in creep.carry) {
+                creep.drop(resourceType);
+            }
+        }
+
         if(creep.memory.full && creep.carry.energy == 0) {
             delete creep.memory.full;
             delete creep.memory.rechargeId;
-            this.checkRenewOrRecycle(creep);
+            // this.checkRenewOrRecycle(creep);
         }
-        this.tryRenewOrRecycle(creep);
+        // this.tryRenewOrRecycle(creep);
 
         if(!creep.memory.full && creep.carry.energy == creep.carryCapacity) {
-            delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
+            delete creep.memory.sId;
             delete creep.memory.repairId;
             creep.memory.full = 1;
         }

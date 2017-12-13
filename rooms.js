@@ -12,11 +12,39 @@ module.exports = {
     EXIT_NAME: EXIT_NAME,
     EXITS: [FIND_EXIT_TOP, FIND_EXIT_RIGHT, FIND_EXIT_BOTTOM, FIND_EXIT_LEFT],
 
-    gc() {
-        if (Game.tick % 25 === 0) {
+    gc(force) {
+        if (force || Game.tick % 25 === 0) {
             _fallenResource = {};
             _lowHealthStructs = {};
         }
+    },
+
+    getInitialData(roomName) {
+        //console.log(`${roomName} ` + JSON.stringify(Memory.rooms[roomName]));
+        let data = {roomName: roomName, exits: {}, sMiners: {} };
+        let exits = Game.map.describeExits(roomName);
+        this.EXITS.forEach(exitDir => {
+            let isConnected = !!exits[exitDir];
+                
+            if (isConnected) {
+                let name = exits[exitDir];
+                if (Memory.rooms[name]) {
+                    data.exits[exitDir] = name;
+                } else {
+                    data.exits[exitDir] = true;
+                }
+            } else {
+                data.exits[exitDir] = false;
+            }
+        });
+        Game.rooms[roomName].find(FIND_SOURCES).forEach((source) => {
+            data.sMiners[source.id] = 0;
+        });
+        data.lastChecked = Game.time;
+        // TODO determine if it's neutral. Say/Mark it on the world map.
+        // creep.signController(controller, text)
+        console.log(JSON.stringify(data));
+        return data;
     },
 
     healthRatio() {
@@ -41,7 +69,6 @@ module.exports = {
                 }
             });
         }
-        console.log('lowHealth ' + _lowHealthStructs[roomName].length)
         
         if (! _lowHealthStructs[roomName] || _lowHealthStructs[roomName].length === 0) return;
         _lowHealthStructs[roomName].sort((a,b) => a.healthRatio() - b.healthRatio());
@@ -52,7 +79,9 @@ module.exports = {
         let room = Game.rooms[roomName];
         if ( !room) return;
         if ( !_fallenResource[roomName]) {
-            _fallenResource[roomName] = room.find(FIND_DROPPED_RESOURCES);
+            _fallenResource[roomName] = room.find(FIND_DROPPED_RESOURCES, {
+                filter: { resourceType: RESOURCE_ENERGY }
+            });
         }
         
         if (_fallenResource[roomName]) {

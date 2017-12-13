@@ -27,9 +27,6 @@ class RoleHarvester extends CreepsBase {
     }
 
     run (creep) {
-
-        this.preRun(creep);
-
         if (!creep.memory.full) {
             this.harvest(creep);
         } else {

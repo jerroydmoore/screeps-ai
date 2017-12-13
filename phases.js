@@ -1,13 +1,34 @@
-const StructExtensions = require('struct-extensions');
 let Phases = [
-    {}, // Controller level starts at 0
+    {},
     {
-        // < 1 Extension
+        // Intro level.
         Level: 1,
-        checkLevelPeriod: 100,
+        checkLevelPeriod: 1001,
         SpawnScoutAfterSkippedPeriods: -1,
         SpawnPeriod: 25,
         minimumEnergyToSpawn: 250,
+        checkGoal: (room) => {
+
+            // Goal: build a container for each source and 5 extensions.
+            let desiredExtensionCount = 5,
+                desiredContainerCount = (room.find(FIND_SOURCES)||{}).length || 0,
+                structures = room.find(FIND_MY_STRUCTURES);
+            
+            for(let i=0;i<structures.length;i++) {
+                let structure = structures[i];
+                if(structure.structureType === 'extension') {
+                    desiredExtensionCount--;
+                } else if (structure.structureType === 'container') {
+                    desiredContainerCount--;
+                } else if (structure.structureType === 'storage') {
+                    desiredContainerCount--;
+                }
+                if (desiredContainerCount <= 0 && desiredExtensionCount <= 0) {
+                    return true;
+                }
+            }
+            return false;
+        },
         Harvester: {
             count: 2,
             parts: [WORK,CARRY,MOVE] // 250
@@ -22,35 +43,89 @@ let Phases = [
         },
         Scout: {
             count: 0,
-            // scouts are expected to go on roads
             parts: [ ]
 
         },
         Pilgrim: {
             count: 0,
-            parts: []
+            parts: [ ]
         },
         RemoteHarvester: {
             count: 0,
             parts: [ ]
         },
+        Miner: {
+            count: 0,
+            parts: [ ]
+        }
     }, {
-        // 1 <= Extensions < 5
+        // Extensions and containers built.
         Level: 2,
-        checkLevelPeriod: 500,
+        checkLevelPeriod: 1001,
         SpawnScoutAfterSkippedPeriods: 10,
         SpawnPeriod: 50,
         minimumEnergyToSpawn: 550,
+        checkGoal: (room) => {
+            
+            // Goal: Build one tower.
+            let structures = room.find(FIND_MY_STRUCTURES);
+            
+            for(let i=0;i<structures.length;i++) {
+                let structure = structures[i];
+                if(structure.structureType === 'tower') {
+                    return true;
+                }
+            }
+            return false;
+        },
+        Harvester: {
+            count: 1,
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
+        },
+        Upgrader: {
+            count: 3,
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
+        },
+        Builder: {
+            count: 2,
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
+        },
+        Scout: {
+            count: 256,
+            // scouts are expected to not go on roads
+            parts: [TOUGH, MOVE, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK ]
+        },
+        Pilgrim: {
+            count: 1,
+            parts: [MOVE, MOVE, CLAIM]
+        },
+        RemoteHarvester: {
+            count: 0,
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
+        },
+        Miner: {
+            count: LOOK_SOURCES,
+            minimumEnergyToSpawn: 700,
+            parts: [ WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE ] // 700
+        },
+    }, {
+        // Build defenses
+        Level: 2,
+        checkLevelPeriod: 1001,
+        SpawnScoutAfterSkippedPeriods: 10,
+        SpawnPeriod: 50,
+        minimumEnergyToSpawn: 550,
+        checkGoal: () => false,
         Harvester: {
             count: 2,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Upgrader: {
-            count: 4,
+            count: 3,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Builder: {
-            count: 4,
+            count: 2,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Scout: {
@@ -66,37 +141,10 @@ let Phases = [
             count: 0,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
-    }, {
-        // 5 <= Extensions
-        Level: 2,
-        checkLevelPeriod: 500,
-        SpawnScoutAfterSkippedPeriods: 10,
-        SpawnPeriod: 50,
-        minimumEnergyToSpawn: 550,
-        Harvester: {
-            count: 2,
-            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
-        },
-        Upgrader: {
-            count: 4,
-            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
-        },
-        Builder: {
-            count: 4,
-            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
-        },
-        Scout: {
-            count: 256,
-            // scouts are expected to go on roads
-            parts: [TOUGH, MOVE, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK ]
-        },
-        Pilgrim: {
-            count: 1,
-            parts: [MOVE, MOVE, CLAIM]
-        },
-        RemoteHarvester: {
-            count: 0,
-            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
+        Miner: {
+            count: LOOK_SOURCES,
+            minimumEnergyToSpawn: 700,
+            parts: [ WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE ] // 700
         },
     }
 ];
@@ -116,24 +164,17 @@ Phases.getCurrentPhaseNumber = function(spawner) {
 };
 Phases.determineCurrentPhaseNumber = function (spawner) {
     let phaseNo = spawner.memory.phase || 1,
-        period = Phases[phaseNo].checkLevelPeriod;
+        phase = Phases[phaseNo],
+        period = phase.checkLevelPeriod,
+        checkGoal = phase.checkGoal;
 
-    if (Game.time % period === 0) {
-        // We don't need to check on every tick
-        spawner.memory.phase = 1;
-        let existingExt = StructExtensions.getMyStructs(spawner.room);
-        if (existingExt.length > 1) {
-            spawner.memory.phase = 2;
-        }
-        if (existingExt.length >= 5) {
-            spawner.memory.phase = 3;
-        }
-        if (phaseNo !== spawner.memory.phase) {
-            console.log(`Updated ${spawner} phase to ${spawner.memory.phase}`);
-        }
+    // We don't need to check on every tick
+    if (Game.time % period === 0 && checkGoal(spawner.room)) {
+        spawner.memory.phase++;
+        console.log(`Updated ${spawner} phase to ${spawner.memory.phase}`);
     }
     // TODO: Rooms that don't have a controller?
-    return spawner.memory.phase;
+    return spawner.memory.phase || 1;
 };
 
 module.exports = Phases;

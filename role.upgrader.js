@@ -1,32 +1,14 @@
-const Constants = require('constants');
 const Errors = require('errors');
 const roleHarvester = require('role.harvester');
 const CreepsBase = require('creeps');
-const utils = require('utils');
 
-const role = 'Upgrader';
 class RoleUpgrader extends CreepsBase {
     constructor() {
-        super(role);
+        super('Upgrader');
     }
     
     run (creep) {
-
-        this.preRun(creep);
-
-        // if we just spawned. Find the closest source to the controller and remember it.
-        if (! creep.memory[Constants.MemoryKey[LOOK_SOURCES]] && !creep.memory.full) {
-            let pos = utils.findFreeAdjecentPos(creep.room.controller),
-                source = pos.findClosestByPath(FIND_SOURCES);
-            if (source) {
-                creep.memory[Constants.MemoryKey[LOOK_SOURCES]] = source.id;
-            } else if (this.emote(creep, '🚦 stuck')) {
-                console.log(`${creep} cannot find a source`);
-            }
-        }
-
         if(creep.memory.full) {
-            delete creep.memory[Constants.MemoryKey[LOOK_SOURCES]];
 
             let controller = creep.room.controller;
             if (controller.id !== creep.memory.origin) {

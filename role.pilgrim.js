@@ -16,28 +16,6 @@ class RolePilgrim extends CreepsBase {
             creep.memory.prevRoom = roomName;
         }
         
-        //console.log(`${roomName} ` + JSON.stringify(Memory.rooms[roomName]));
-        if (! Memory.rooms[roomName]) {
-            let defaultObj = {roomName: roomName, exits: {} };
-            Memory.rooms[roomName] = defaultObj;
-            let exits = Game.map.describeExits(roomName);
-            RoomUtils.EXITS.forEach(exitDir => {
-                let isConnected = !!exits[exitDir];
-                 
-                if (isConnected) {
-                    let name = exits[exitDir];
-                    if (Memory.rooms[name]) {
-                        defaultObj.exits[exitDir] = name;
-                    } else {
-                        defaultObj.exits[exitDir] = true;
-                    }
-                } else {
-                    defaultObj.exits[exitDir] = false;
-                }
-            });
-            // TODO determine if it's neutral. Say/Mark it on the world map.
-            // creep.signController(controller, text)
-        }
         Memory.rooms[roomName].lastChecked = Game.time;
 
         // if we changed rooms, update the Exits

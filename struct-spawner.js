@@ -1,6 +1,7 @@
 const StructBase = require('struct-base');
 const utils = require('utils');
 const AVOID_LIST = utils.AVOID_LIST;
+const roleMiner = require('role.miner');
 const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
 const roleBuilder = require('role.builder');
@@ -10,6 +11,7 @@ const Phases = require('phases');
 const Roads = require('roads');
 const StructExtensions = require('struct-extensions');
 const StructTowers = require('struct-towers');
+const StructContainers = require('struct-containers');
 
 
 class StructSpawners extends StructBase {
@@ -71,25 +73,23 @@ class StructSpawners extends StructBase {
             }
             StructExtensions.buildInRoom(spawner.room);
             StructTowers.buildInRoom(spawner.room);
+            StructContainers.buildInRoom(spawner.room);
         }
 
         if (Game.time % phase.SpawnPeriod === 0 && spawner.room.energyAvailable >= phase.minimumEnergyToSpawn) {
-            
-            let harvesters = _.filter(Game.creeps, (creep) => roleHarvester.is(creep)),
-                builders =  _.filter(Game.creeps, (creep) => roleBuilder.is(creep)),
-                upgraders =  _.filter(Game.creeps, (creep) => roleUpgrader.is(creep));
-            
-            
+
             // CreepsUtil.spawn(spawner, roleScout.roleName, phase.Scout.parts);
 
-
-            if (harvesters.length < phase.Harvester.count) {
+            if (roleMiner.shouldSpawn(spawner)) {
+                spawner.memory.skippedSpawnCount = 0;
+                roleMiner.spawn(spawner);
+            } else if (roleHarvester.shouldSpawn(spawner)) {
                 spawner.memory.skippedSpawnCount = 0;
                 roleHarvester.spawn(spawner);
-            } else if (builders.length < phase.Builder.count) {
+            } else if (roleBuilder.shouldSpawn(spawner)) {
                 spawner.memory.skippedSpawnCount = 0;
                 roleBuilder.spawn(spawner);
-            } else if (upgraders.length < phase.Upgrader.count) {
+            } else if (roleUpgrader.shouldSpawn(spawner)) {
                 spawner.memory.skippedSpawnCount = 0;
                 roleUpgrader.spawn(spawner);
             } else {
