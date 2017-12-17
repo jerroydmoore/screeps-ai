@@ -22,7 +22,7 @@ class RoleUpgrader extends CreepsBase {
             if (code === OK) {
                 creep.busy = 1;
             } else if (code === ERR_NOT_IN_RANGE) {
-                this.moveTo(creep, controller, '#4800FF'); //blue
+                this.travelTo(creep, controller, '#4800FF'); //blue
             } else if (code === ERR_NOT_OWNER) {
                 console.log(`${creep} is lost in ${creep.room}`);
             } else if (code === ERR_NO_BODYPART) {

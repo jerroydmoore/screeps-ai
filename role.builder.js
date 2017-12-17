@@ -36,7 +36,7 @@ class RoleBuilder extends CreepsBase {
                 creep.busy = 1;
             }
             if(code == ERR_NOT_IN_RANGE) {
-                this.moveTo(creep, structure, '#FF0000'); // red
+                this.travelTo(creep, structure, '#FF0000'); // red
             } else if(code === ERR_INVALID_TARGET) {
                 console.log(`${creep} cannot repair ${structure}`);
                 delete creep.memory.repairId;
@@ -69,7 +69,7 @@ class RoleBuilder extends CreepsBase {
             if (code === OK) {
                 creep.busy = 1;
             } else if(code == ERR_NOT_IN_RANGE) {
-                this.moveTo(creep, target, '#ffe56d');
+                this.travelTo(creep, target, '#ffe56d');
             } else if(code === ERR_INVALID_TARGET) {
                 delete creep.memory.cId;
             } else if (code === ERR_NO_BODYPART) {

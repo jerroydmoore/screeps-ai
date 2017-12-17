@@ -6,7 +6,7 @@ const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
 const roleBuilder = require('role.builder');
 // const roleScout = require('role.scout');
-const rolePilgrim = require('role.pilgrim');
+const roleSettler = require('role.settler');
 const Phases = require('phases');
 const Roads = require('roads');
 const StructExtensions = require('struct-extensions');
@@ -97,7 +97,7 @@ class StructSpawners extends StructBase {
                 if (Game.gcl.level !== Memory.gcl && spawner.room.energyAvailable >= 900) {
 
                     spawner.memory.skippedSpawnCount = 0;
-                    let code = rolePilgrim.spawn(spawner);
+                    let code = roleSettler.spawn(spawner);
                     if (code === OK) {
                         Memory.gcl = Game.gcl.level;
                     }

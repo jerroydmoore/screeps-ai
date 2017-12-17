@@ -46,7 +46,7 @@ let Phases = [
             parts: [ ]
 
         },
-        Pilgrim: {
+        Settler: {
             count: 0,
             parts: [ ]
         },
@@ -95,7 +95,7 @@ let Phases = [
             // scouts are expected to not go on roads
             parts: [TOUGH, MOVE, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK ]
         },
-        Pilgrim: {
+        Settler: {
             count: 1,
             parts: [MOVE, MOVE, CLAIM]
         },
@@ -133,7 +133,7 @@ let Phases = [
             // scouts are expected to go on roads
             parts: [TOUGH, MOVE, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK ]
         },
-        Pilgrim: {
+        Settler: {
             count: 1,
             parts: [MOVE, MOVE, CLAIM]
         },

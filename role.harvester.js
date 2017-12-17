@@ -76,7 +76,7 @@ class RoleHarvester extends CreepsBase {
                 // unable to energize?
                 this.suicide(creep);
             } else if (code === ERR_NOT_IN_RANGE) {
-                this.moveTo(creep, structure,'#00FF3C'); // green
+                this.travelTo(creep, structure,'#00FF3C'); // green
             }
         }
     }

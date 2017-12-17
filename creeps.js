@@ -30,7 +30,7 @@ class CreepsBase {
         creep.busy = 1;
         creep.suicide();
     }
-    moveTo(creep, target, color, reusePath) {
+    travelTo(creep, target, color, disableRoadCheck) {
         let opts = {}, code;
 
         if (creep.busy) {
@@ -38,9 +38,6 @@ class CreepsBase {
         }
         if (color) {
             opts.visualizePathStyle = { stroke: color, opacity: 1, lineStyle: 'dotted' };
-        }
-        if (reusePath) {
-            opts.reusePath = reusePath;
         }
 
         code = creep.moveTo(target, opts);
@@ -55,7 +52,9 @@ class CreepsBase {
             if(code === OK && creep.memory.blocked && --creep.memory.blocked >= 0) {
                 delete creep.memory.blocked;
             }
-            Roads.shouldBuildAt(creep);
+            if (! disableRoadCheck) {
+                Roads.shouldBuildAt(creep);
+            }
             return OK;
         } else if (code === ERR_NO_BODYPART) {
             // unable to move?
@@ -91,7 +90,7 @@ class CreepsBase {
             }
         }
         if (code === ERR_NOT_IN_RANGE) {
-            this.moveTo(creep, resource.pos, '#ffaa00');
+            this.travelTo(creep, resource.pos, '#ffaa00', true);
         } else if (code === OK) {
             delete creep.memory.fallenResourceId;
             creep.busy = 1;
@@ -159,7 +158,7 @@ class CreepsBase {
             this.emote(creep, '🔄 harvest', code);
 
             if (code === ERR_NOT_IN_RANGE) {
-                code = this.moveTo(creep, source, '#ffaa00'); //orange
+                code = this.travelTo(creep, source, '#ffaa00'); //orange
                 // What about using Storage???
             } else if (code === ERR_NOT_ENOUGH_RESOURCES) {
                 delete creep.memory.sId;
@@ -336,7 +335,7 @@ class CreepsBase {
             if (code === OK) {
                 creep.busy = 1;
             } else if (code === ERR_NOT_IN_RANGE || code === ERR_BUSY) {
-                this.moveTo(creep, spawn, '#FFFFFF');
+                this.travelTo(creep, spawn, '#FFFFFF');
             } else if (code === ERR_FULL || code === ERR_NOT_ENOUGH_ENERGY) {
                 delete creep.memory[action];
             } else {
@@ -398,8 +397,8 @@ class CreepsBase {
             let dest = creep.pos.findClosestByPath(target);
             // console.log(`${creep} ${creep.pos} scouting to ${dest} ${RoomUtils.EXIT_NAME[target]}(${target})`)
 
-            let code = this.moveTo(creep, dest, '#5d80b2', 50);
-            Errors.check(creep, `moveTo(${dest})`, code);
+            let code = this.travelTo(creep, dest, '#5d80b2', true);
+            Errors.check(creep, `travelTo(${dest})`, code);
             if (code === ERR_INVALID_TARGET) {
                 delete creep.memory.roomOrders;
             }

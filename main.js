@@ -3,7 +3,7 @@ const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
 const roleBuilder = require('role.builder');
 const roleScout = require('role.scout');
-const rolePilgrim = require('role.pilgrim');
+const roleSettler = require('role.settler');
 const Spawner = require('struct-spawner');
 const Phases = require('phases');
 const Roads = require('roads');
@@ -92,8 +92,8 @@ module.exports.loop = function () {
             roleScout.run(creep);
             continue;
         }
-        if(rolePilgrim.is(creep)) {
-            rolePilgrim.run(creep);
+        if(roleSettler.is(creep)) {
+            roleSettler.run(creep);
             continue;
         }
 

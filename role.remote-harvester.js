@@ -38,7 +38,7 @@ module.exports = {
             creep.memory.sId = source.id;
             let code = creep.harvest(source);
             if (code === ERR_NOT_IN_RANGE) {
-                code = this.moveTo(creep, source, '#ffaa00'); //orange
+                code = this.travelTo(creep, source, '#ffaa00'); //orange
                 // What about using Storage???
             } else if (code === ERR_NOT_ENOUGH_RESOURCES) {
                 delete creep.memory.sId;
@@ -101,7 +101,7 @@ module.exports = {
                 // unable to energize?
                 this.suicide(creep);
             } else if (code === ERR_NOT_IN_RANGE) {
-                this.moveTo(creep, structure,'#00FF3C'); // green
+                this.travelTo(creep, structure,'#00FF3C'); // green
             }
         }
     }, 

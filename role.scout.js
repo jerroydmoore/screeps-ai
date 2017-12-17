@@ -19,7 +19,7 @@ class RoleScout extends CreepsBase {
                 creep.busy = 1;
                 return code;
             } else if (code === ERR_NOT_IN_RANGE) {
-                this.moveTo(creep, closestHostile);
+                this.travelTo(creep, closestHostile, true);
                 creep.busy = 1;
                 return code;
             } else {
@@ -38,7 +38,7 @@ class RoleScout extends CreepsBase {
                 }
                 return code;
             } else if (code === ERR_NOT_IN_RANGE) {
-                this.moveTo(creep, closestHostile);
+                this.travelTo(creep, closestHostile, true);
                 creep.busy = 1;
                 return code;
             } else {

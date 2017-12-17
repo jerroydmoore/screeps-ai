@@ -3,10 +3,9 @@ const RoomUtils = require('rooms');
 const CreepsBase = require('creeps');
 const roleBuilder = require('role.builder');
 
-const role = 'Pilgrim';
-class RolePilgrim extends CreepsBase {
+class RoleSettler extends CreepsBase {
     constructor() {
-        super(role);
+        super('Settler');
     }
     run (creep) {
         // this.preRun()
@@ -52,7 +51,7 @@ class RolePilgrim extends CreepsBase {
                     creep.memory.claimed = 1;
                     
                 } else if (code === ERR_NOT_IN_RANGE) {
-                    this.moveTo(creep, controller, '#b99cfb');
+                    this.travelTo(creep, controller, '#b99cfb', true);
                     creep.busy = 1;
                 } else if (code === ERR_GCL_NOT_ENOUGH) {
                     console.log('Not enough GCL to claim a room');
@@ -70,4 +69,4 @@ class RolePilgrim extends CreepsBase {
     }
 }
 
-module.exports = new RolePilgrim();
+module.exports = new RoleSettler();
