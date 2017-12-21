@@ -72,15 +72,14 @@ const BuildOrders = {
         return true;
     },
 
-    getCount(_room, type) {
+    getCount(_room, filter) {
         const roomName = _room.name || _room; // accept either Room Object or String
-        const orders = Memory.con[roomName] || [];
-        let count = orders.reduce((acc, x) => {
-            return acc + (x.type === type ? 1 : 0);
-        }, 0);
-
-        // console.log(type + ' ' + orders.length + ' ' + count);
-        return count;
+        let orders = Memory.con[roomName] || [];
+        let res = orders.map(x => ({structureType: x.type}));
+        res = _.filter(res, filter);
+        
+        // console.log(type + ' ' + orders.length + ' ' + res.length);
+        return res.length;
     },
     getAllScheduled(_room) {
         const roomName = _room.name || _room; // accept either Room Object or String

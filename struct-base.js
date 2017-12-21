@@ -46,7 +46,7 @@ class Struct {
     buildInRoom (room) {
         let existingExt = this.getMyStructs(room),
             existingSites = this.getMySites(room),
-            plannedSitesCount = BuildOrders.getCount(room, this.structureType),
+            plannedSitesCount = BuildOrders.getCount(room, this.structureFilter),
             desired = this.getDesiredNumberOfStructs(room),
             howmanyBuilt = existingExt.length + existingSites.length,
             howmanyToBuild = desired - howmanyBuilt - plannedSitesCount,
