@@ -59,9 +59,9 @@ class StructSpawners extends StructBase {
     }
 
     run (spawner) {
-        Phases.determineCurrentPhaseNumber(spawner);
+        Phases.determineCurrentPhaseNumber(spawner.room);
 
-        let phase = Phases.getCurrentPhaseInfo(spawner);
+        let phase = Phases.getCurrentPhaseInfo(spawner.room);
 
         if (!spawner.memory.setup) {
             console.log(`${spawner} coming online in ${spawner.room}`);

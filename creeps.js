@@ -150,6 +150,9 @@ class CreepsBase {
             let code;
             if (source instanceof Source || source instanceof Mineral) {
                 // is a Source or Mineral
+                if (source.ticksToRegeneration === 1) {
+                    console.log(source + ' wasted energy: ' + source.energy);
+                }
                 code = creep.harvest(source);
             } else {
                 code = creep.withdraw(source, RESOURCE_ENERGY);
@@ -176,7 +179,7 @@ class CreepsBase {
         let roomName = spawner.room.name,
             creeps = _.filter(Game.creeps, creep => roomName === creep.room.name && this.is(creep)),
             count = creeps.length,
-            phase = Phases.getCurrentPhaseInfo(spawner),
+            phase = Phases.getCurrentPhaseInfo(spawner.room),
             phaseRole = phase[this.roleName];
 
         if (! phaseRole) {
@@ -204,11 +207,14 @@ class CreepsBase {
     }
 
     spawn (spawner) {
-        let phase = Phases.getCurrentPhaseInfo(spawner),
+        let phase = Phases.getCurrentPhaseInfo(spawner.room),
             availableBodyParts = phase[this.roleName].parts,
             bodyParts = [],
             action = 'spawnCreep',
             cost = 0;
+        
+        // console.log(`${phase.level} parts ` +JSON.stringify(availableBodyParts));
+
         for(let i=0;i<availableBodyParts.length;i++) {
             bodyParts.push(availableBodyParts[i]);
             cost = this.bodyPartCost(bodyParts);
@@ -220,8 +226,9 @@ class CreepsBase {
         }
         
         let label = this.roleName + Game.time;
-        // console.log(`Spawning ${label} ` + JSON.stringify(bodyParts) + ` cost ${cost}/${spawner.room.energyAvailable}`);
+        console.log(`Spawning ${label} ` + JSON.stringify(bodyParts) + ` cost ${cost}/${spawner.room.energyAvailable}`);
         let code = spawner[action](bodyParts, label);
+        
         Errors.check(spawner, action, code);
         utils.gc(); // garbage collect the recently deseased creep
         return code;

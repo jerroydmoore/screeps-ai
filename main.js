@@ -22,7 +22,7 @@ require('extends_rooms');
 
 module.exports.loop = function () {
 
-    let phaseNumber = Phases.getCurrentPhaseNumber(Game.spawns['Spawn1']);
+    let phaseNumber = Phases.getCurrentPhaseNumber(Game.spawns['Spawn1'].room);
     //console.log(`Game Loop ${Game.time}. Room Phase: ${phaseNumber}`)
 
     initGame(phaseNumber);

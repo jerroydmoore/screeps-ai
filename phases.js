@@ -110,7 +110,8 @@ let Phases = [
         },
     }, {
         // Build defenses
-        Level: 2,
+        Level: 3,
+        RampartDesiredHealth: 30*1000,
         checkLevelPeriod: 1001,
         SpawnScoutAfterSkippedPeriods: 10,
         SpawnPeriod: 50,
@@ -118,19 +119,19 @@ let Phases = [
         checkGoal: () => false,
         Harvester: {
             count: 2,
-            parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
+            parts: [WORK,CARRY,MOVE,MOVE,CARRY,CARRY,MOVE,CARRY,CARRY]
         },
         Upgrader: {
-            count: 3,
+            count: 2,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Builder: {
-            count: 2,
+            count: 4,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Scout: {
             count: 256,
-            // scouts are expected to go on roads
+            // scouts are expected to not go on roads
             parts: [TOUGH, MOVE, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK ]
         },
         Settler: {
@@ -149,8 +150,8 @@ let Phases = [
     }
 ];
 
-Phases.getCurrentPhaseInfo = function (spawner) {
-    let number = Phases.getCurrentPhaseNumber(spawner);
+Phases.getCurrentPhaseInfo = function (room) {
+    let number = Phases.getCurrentPhaseNumber(room);
     while (!Phases[number]) {
         number--;
         if (number < 0) {
@@ -159,22 +160,25 @@ Phases.getCurrentPhaseInfo = function (spawner) {
     }
     return Phases[number];
 };
-Phases.getCurrentPhaseNumber = function(spawner) {
-    return spawner.memory.phase || 1;
+Phases.getCurrentPhaseNumber = function(room) {
+    let roomName = room.name || room,
+        phaseNo = Memory.rooms[roomName].phase; 
+    return phaseNo || 1;
 };
-Phases.determineCurrentPhaseNumber = function (spawner) {
-    let phaseNo = spawner.memory.phase || 1,
+Phases.determineCurrentPhaseNumber = function (room) {
+    let roomName = room.name || room,
+        phaseNo = Memory.rooms[roomName].phase || 1,
         phase = Phases[phaseNo],
         period = phase.checkLevelPeriod,
         checkGoal = phase.checkGoal;
 
     // We don't need to check on every tick
-    if (Game.time % period === 0 && checkGoal(spawner.room)) {
-        spawner.memory.phase++;
-        console.log(`Updated ${spawner} phase to ${spawner.memory.phase}`);
+    if (Game.time % period === 0 && checkGoal(room)) {
+        Memory.rooms[roomName].phase++;
+        console.log(`Updated ${room} phase to ${Memory.rooms[roomName].phase}`);
     }
     // TODO: Rooms that don't have a controller?
-    return spawner.memory.phase || 1;
+    return Memory.rooms[roomName].phase || 1;
 };
 
 module.exports = Phases;

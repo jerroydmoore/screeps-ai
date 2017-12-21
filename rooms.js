@@ -13,7 +13,7 @@ module.exports = {
     EXITS: [FIND_EXIT_TOP, FIND_EXIT_RIGHT, FIND_EXIT_BOTTOM, FIND_EXIT_LEFT],
 
     gc(force) {
-        if (force || Game.tick % 25 === 0) {
+        if (force || Game.time % 25 === 0) {
             _fallenResource = {};
             _lowHealthStructs = {};
         }
@@ -40,6 +40,7 @@ module.exports = {
         Game.rooms[roomName].find(FIND_SOURCES).forEach((source) => {
             data.sMiners[source.id] = 0;
         });
+        data.phase = 1;
         data.lastChecked = Game.time;
         // TODO determine if it's neutral. Say/Mark it on the world map.
         // creep.signController(controller, text)
@@ -78,6 +79,7 @@ module.exports = {
     findFallenResource(roomName) {
         let room = Game.rooms[roomName];
         if ( !room) return;
+
         if ( !_fallenResource[roomName]) {
             _fallenResource[roomName] = room.find(FIND_DROPPED_RESOURCES, {
                 filter: { resourceType: RESOURCE_ENERGY }
