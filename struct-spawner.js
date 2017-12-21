@@ -9,25 +9,31 @@ const roleBuilder = require('role.builder');
 const roleSettler = require('role.settler');
 const Phases = require('phases');
 const Roads = require('roads');
-const StructExtensions = require('struct-extensions');
-const StructTowers = require('struct-towers');
-const StructContainers = require('struct-containers');
 
 
 class StructSpawners extends StructBase {
     constructor() {
-        let modifiedSource = Object.assign({}, AVOID_LIST[LOOK_SOURCES], {range: 5});
+        let modifiedSource = Object.assign({}, AVOID_LIST[LOOK_SOURCES], {range: 3});
         
         super(STRUCTURE_SPAWN, {
             minFreeAdjSpaces: 3,
             minPlacementDistance: 3,
-            avoidList: [ modifiedSource, AVOID_LIST[STRUCTURE_TOWER] ]
+            avoidList: [
+                AVOID_LIST[STRUCTURE_ROAD],
+                AVOID_LIST[STRUCTURE_SPAWN],
+                AVOID_LIST[STRUCTURE_CONTROLLER],
+                AVOID_LIST[STRUCTURE_EXTENSION],
+                AVOID_LIST[STRUCTURE_CONTAINER],
+                AVOID_LIST[STRUCTURE_STORAGE],
+                modifiedSource,
+            ]
         });
     }
     * getBuildingPointsOfInterests (room) {
-        // criteria:
-        //   1) build near a Source 
-        //   2) don't build at the Sources closest to the controller
+        // 3 spawners allowed near a room
+        //   1) build near a Source away from Controller
+        //   2) Build near a Storage
+        //   3) Build near a Storage again
         // what if there is only one source? then build at that.
         
         let sources = room.find(FIND_SOURCES);
@@ -45,7 +51,13 @@ class StructSpawners extends StructBase {
                 yield paths[i].source;
             }
         }
+        let storage = room.find(FIND_MY_STRUCTURES, {filter: { structureType: STRUCTURE_STORAGE }});
+        if( storage) {
+            yield storage[0];
+            yield storage[0];
+        }
     }
+
     run (spawner) {
         Phases.determineCurrentPhaseNumber(spawner);
 
@@ -71,9 +83,6 @@ class StructSpawners extends StructBase {
                 Roads.connect(spawner.room.controller, sources);
                 spawner.memory.setup = 2;
             }
-            StructExtensions.buildInRoom(spawner.room);
-            StructTowers.buildInRoom(spawner.room);
-            StructContainers.buildInRoom(spawner.room);
         }
 
         if (Game.time % phase.SpawnPeriod === 0 && spawner.room.energyAvailable >= phase.minimumEnergyToSpawn) {

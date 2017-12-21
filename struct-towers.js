@@ -9,7 +9,17 @@ class StructTowers extends StructBase {
         super(STRUCTURE_TOWER, {
             minFreeAdjSpaces: 3,
             minPlacementDistance: 7,
-            avoidList: [AVOID_LIST[LOOK_SOURCES], AVOID_LIST[STRUCTURE_TOWER]]
+            avoidList: [
+                AVOID_LIST[STRUCTURE_TOWER],
+                
+                AVOID_LIST[STRUCTURE_ROAD],
+                AVOID_LIST[STRUCTURE_SPAWN],
+                AVOID_LIST[STRUCTURE_CONTROLLER],
+                AVOID_LIST[STRUCTURE_EXTENSION],
+                AVOID_LIST[STRUCTURE_CONTAINER],
+                AVOID_LIST[STRUCTURE_STORAGE],
+                AVOID_LIST[LOOK_SOURCES]
+            ]
         });
     }
     * getBuildingPointsOfInterests (room) {

@@ -10,17 +10,19 @@ class Struct {
         this.minFreeAdjSpaces = opts.minFreeAdjSpaces || 3,
         this.minPlacementDistance = opts.minPlacementDistance || 7,
         this.avoidList = opts.avoidList || [];
+        this.avoidIsCheckered = opts.avoidIsCheckered || false;
+        this.structureFilter = opts.structureFilter || { structureType };
         this.gc();
     }
     getMyStructs(room) {
         if (!this._structs[room.id]) {
-            this._structs[room.id] = room.find(FIND_MY_STRUCTURES, {filter: { structureType: this.structureType }});
+            this._structs[room.id] = room.find(FIND_STRUCTURES, {filter: this.structureFilter});
         }
         return this._structs[room.id];
     }
     getMySites (room) {
         if (!this._sites[room.id]) {
-            this._sites[room.id] = room.find(FIND_MY_CONSTRUCTION_SITES, {filter: { structureType: this.structureType }});
+            this._sites[room.id] = room.find(FIND_CONSTRUCTION_SITES, {filter: this.structureFilter});
         }
         return this._sites[room.id];
     }
@@ -59,11 +61,13 @@ class Struct {
             return;
         }
 
+        // console.log(`Bulding ${howmanyToBuild} ${this.structureType}`);
+
         //round robin, build
         let poiAreas = this.getBuildingPointsOfInterests(room);
         for(let target of poiAreas) {
 
-            let freePOSs = utils.findFreePosNearby(target, range, this.minFreeAdjSpaces, this.minPlacementDistance, this.avoidList),
+            let freePOSs = utils.findFreePosNearby(target, range, this.minFreeAdjSpaces, this.minPlacementDistance, this.avoidList, this.avoidIsCheckered),
                 howmanyHere = 0,
                 roadList = [];
             
