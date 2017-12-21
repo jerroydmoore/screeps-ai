@@ -19,8 +19,6 @@ const orderStructures = [
     STRUCTURE_CONTAINER
 ];
 
-const walkableStructures = [ STRUCTURE_ROAD, STRUCTURE_RAMPART ];
-
 const CONSTRUCTION_SITES_PER_ROOM_LIMIT = 4;
 const EXISTING_CONSTRUCTION_SITE_THRESHOLD = 95;
 const CONSTRUCTION_SITE_LIMIT= 100;
@@ -68,8 +66,6 @@ const BuildOrders = {
         }
         
         // otherwise, nothing is here. Schedule the build.
-        console.log(`${_pos} scheduled planned building: ${type}`);
-
         orders.push({type, pos});
         orders.sort(priorityStructureSort);
         Memory.con[room.name] = orders;
@@ -79,9 +75,12 @@ const BuildOrders = {
     getCount(_room, type) {
         const roomName = _room.name || _room; // accept either Room Object or String
         const orders = Memory.con[roomName] || [];
-        return orders.reduce((acc, x) => {
-            return acc + x.type === type ? 1 : 0;
+        let count = orders.reduce((acc, x) => {
+            return acc + (x.type === type ? 1 : 0);
         }, 0);
+
+        // console.log(type + ' ' + orders.length + ' ' + count);
+        return count;
     },
     getAllScheduled(_room) {
         const roomName = _room.name || _room; // accept either Room Object or String
@@ -150,15 +149,13 @@ const BuildOrders = {
 
                 if (code === OK) {
                     howmany++;
-                    if (! walkableStructures.find(t => type === t)) {
-                        // building an unwalkable thing, remove a road if it exists
-                        let res = room.lookAt(pos).find(x => x.type === STRUCTURE_ROAD);
-                        if (res) {
-                            // we don't dismantle (yet), because you need at least 4 WORK
-                            // parts to get back 1 energy, because you reclaim 0.25 energies
-                            // for each part, and then energies are rounded down.
-                            res.structure.destroy();
-                        }
+                    // building an unwalkable thing, remove a road if it exists
+                    let res = room.lookAt(pos).find(x => x.type === STRUCTURE_ROAD);
+                    if (res) {
+                        // we don't dismantle (yet), because you need at least 4 WORK
+                        // parts to get back 1 energy, because you reclaim 0.25 energies
+                        // for each part, and then energies are rounded down.
+                        res.structure.destroy();
                     }
                 } else if (code === ERR_FULL || code === ERR_RCL_NOT_ENOUGH) {
                     // unable to fullfill order, but can in the future, reschedule
