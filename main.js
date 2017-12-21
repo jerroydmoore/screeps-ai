@@ -12,6 +12,7 @@ const Towers = require('struct-towers');
 const StructExtensions = require('struct-extensions');
 const StructTowers = require('struct-towers');
 const StructContainers = require('struct-containers');
+const StructStorage = require('struct-storage');
 const Extensions = require('struct-extensions');
 const RoomUtils = require('rooms');
 const BuildOrders = require('build-orders');
@@ -71,6 +72,7 @@ module.exports.loop = function () {
 
             StructExtensions.buildInRoom(room);
             StructTowers.buildInRoom(room);
+            StructStorage.buildInRoom(room);
             StructContainers.buildInRoom(room);
             Spawner.buildInRoom(room);
 
