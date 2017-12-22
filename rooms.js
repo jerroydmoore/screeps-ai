@@ -7,6 +7,7 @@ const EXIT_NAME = {
 
 let _fallenResource = {};
 let _lowHealthStructs = {};
+let _unhealthyWallsAndRamparts = {};
 
 module.exports = {
     EXIT_NAME: EXIT_NAME,
@@ -16,6 +17,7 @@ module.exports = {
         if (force || Game.time % 25 === 0) {
             _fallenResource = {};
             _lowHealthStructs = {};
+            _unhealthyWallsAndRamparts = {};
         }
     },
 
@@ -63,6 +65,9 @@ module.exports = {
             _lowHealthStructs[roomName] = room.find(FIND_STRUCTURES, {
                 filter: (s) => {
                     if (!s.hits || !s.hitsMax) return false;
+                    if ([STRUCTURE_WALL, STRUCTURE_RAMPART].includes(s.structureType)) {
+                        return false;
+                    }
                     s.healthRatio = this.healthRatio;
                     let threshold = (s.structureType === STRUCTURE_ROAD) ? roadThreshold : structureThreshold;
 
@@ -74,6 +79,32 @@ module.exports = {
         if (! _lowHealthStructs[roomName] || _lowHealthStructs[roomName].length === 0) return;
         _lowHealthStructs[roomName].sort((a,b) => a.healthRatio() - b.healthRatio());
         return _lowHealthStructs[roomName].pop();
+    },
+    findUnhealthyWallsAndRamparts (room, desiredHealth) {
+        let roomName = room.name || room.roomName || room;
+
+        if(! _unhealthyWallsAndRamparts[roomName]) {
+            _unhealthyWallsAndRamparts[roomName] = room.find(FIND_STRUCTURES, {
+                filter: s => {
+                    // if (s.structureType === STRUCTURE_WALL) {
+                    //     let check = [STRUCTURE_WALL, STRUCTURE_RAMPART].includes(s.structureType);
+                    //     console.log(`${s.pos} ${s.structureType} ${s.hits} < ${desiredHealth} ${check}`);
+                    // }
+                    return s.hits < desiredHealth && [STRUCTURE_WALL, STRUCTURE_RAMPART].includes(s.structureType);
+                }
+            });
+            _unhealthyWallsAndRamparts[roomName].sort((a,b) => {
+                if (a.hits !== b.hits) return a.hits - b.hits; // traditional sort
+                // because ramparts decay, and walls do not, fortify ramparts first
+                if (a.structureType === b.structureType) return 0;
+                if (a.structureType === STRUCTURE_RAMPART) return -1;
+                return 1;
+
+            });
+        }
+
+        if (! _unhealthyWallsAndRamparts[roomName] || _unhealthyWallsAndRamparts[roomName].length === 0) return;
+        return _unhealthyWallsAndRamparts[roomName].pop();
     },
 
     findFallenResource(roomName) {

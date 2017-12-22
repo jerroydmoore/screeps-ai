@@ -1,8 +1,10 @@
 const roleHarvester = require('role.harvester');
 const CreepsBase = require('creeps');
 const RoomsUtils = require('rooms');
+const Phases = require('phases');
 
 const role = 'Builder';
+
 
 class RoleBuilder extends CreepsBase {
     constructor() {
@@ -44,9 +46,57 @@ class RoleBuilder extends CreepsBase {
                 // unable to move?
                 this.suicide(creep);
             }
+
             if (!creep.busy) {
-                console.log('find anothe repair ' + code);
+                console.log('find another repair ' + code);
                 this.repair(creep, repairThreshold, fixedThreshold); // try again with a valid target
+            }
+        }
+    }
+    fortify(creep) {
+        // find walls/ramparts to build up
+        let phases = Phases.getCurrentPhaseInfo(creep.room);
+        let desiredHealth = phases.RampartDesiredHealth;
+        if (! desiredHealth) {
+            return;
+        }
+
+        let wallId = creep.memory.wallId,
+            structure = undefined;
+
+        if (wallId) {
+            structure = Game.getObjectById(wallId);
+
+            if ( !structure || structure.hits > desiredHealth) {
+                structure = undefined;
+                delete creep.memory.wallId;
+            }
+        }
+        
+        if (!structure) {
+            let healthThreshold = desiredHealth*0.8;
+            structure = RoomsUtils.findUnhealthyWallsAndRamparts(creep.room, healthThreshold);
+        }
+        if (structure) {
+            creep.memory.wallId = structure.id;
+
+            let code = creep.repair(structure);
+            // this.emote(creep, '👾 fortify', code);
+            if (code === OK || code === ERR_NOT_ENOUGH_RESOURCES)  {
+                creep.busy = 1;
+            }
+            if(code == ERR_NOT_IN_RANGE) {
+                this.travelTo(creep, structure, '#FF0000'); // red
+            } else if(code === ERR_INVALID_TARGET) {
+                console.log(`${creep} cannot fortify ${structure}`);
+                delete creep.memory.wallId;
+            } else if (code === ERR_NO_BODYPART) {
+                // unable to move?
+                this.suicide(creep);
+            }
+
+            if (!creep.busy) {
+                this.fortify(creep);
             }
         }
     }
@@ -88,6 +138,7 @@ class RoleBuilder extends CreepsBase {
             if (!creep.busy && !skipRepair) {
                 this.repair(creep);
             }
+            this.fortify(creep);
         } else {
             roleHarvester.harvest(creep);
         }

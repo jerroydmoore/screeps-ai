@@ -16,6 +16,7 @@ const StructStorage = require('struct-storage');
 const Extensions = require('struct-extensions');
 const RoomUtils = require('rooms');
 const BuildOrders = require('build-orders');
+const RoomDefense = require('room-defense');
 const initGame = require('game-init');
 
 require('extends_roompositions');
@@ -66,10 +67,11 @@ module.exports.loop = function () {
             }
         }
 
-        if (Game.time % 100 === 3) {
+        if (Game.time % 10 === 3) {
             // console.log('Attempting to build');
             // console.log('build orders: ' + Memory.con[room.name].length + ' ' + JSON.stringify(Memory.con[room.name].map(x => x.type)));
 
+            RoomDefense.buildInRoom(room);
             StructExtensions.buildInRoom(room);
             StructTowers.buildInRoom(room);
             StructStorage.buildInRoom(room);

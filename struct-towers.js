@@ -3,6 +3,7 @@ const Errors = require('errors');
 const utils = require('utils');
 const AVOID_LIST = utils.AVOID_LIST;
 const RoomsUtils = require('rooms');
+const Phases = require('phases');
 
 class StructTowers extends StructBase {
     constructor() {
@@ -63,7 +64,12 @@ class StructTowers extends StructBase {
         if (ratio >= 0.5 && !tower.busy) {
             let threshold = this.getThreshold(ratio);
             this.repair(tower, threshold);
+
+            if (! tower.busy) {
+                this.fortify(tower, threshold);
+            }
         }
+
     }
 
     getThreshold(ratio, minRatio=.75, min=0.2, max=0.8) {
@@ -92,7 +98,7 @@ class StructTowers extends StructBase {
                 structure = Game.getObjectById(repairId);
 
                 let ratio = RoomsUtils.healthRatio.call(structure);
-                if ( ratio > desiredHealthPercent) {
+                if ( !structure || ratio > desiredHealthPercent) {
                     structure = undefined;
                     delete Memory.towers[tower.id].repairId;
                 }
@@ -104,15 +110,52 @@ class StructTowers extends StructBase {
                 Errors.check(tower, `repair(${structure})`, code);
                 if(code === ERR_INVALID_TARGET) {
                     delete Memory.towers[tower.id].repairId;
+                } else if (code === OK) {
+                    tower.busy = 1;
                 }
             }
         } 
-        // let closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-        //     filter: (structure) => structure.hits < structure.hitsMax
-        // });
-        // if(closestDamagedStructure) {
-        //     tower.repair(closestDamagedStructure);
-        // }
+    }
+    fortify(tower) {
+        // find walls/ramparts to build up
+        let phases = Phases.getCurrentPhaseInfo(tower.room);
+        let desiredHealth = phases.RampartDesiredHealth;
+        if (! desiredHealth) {
+            return;
+        }
+
+        let wallId = Memory.towers[tower.id].wallId,
+            structure = undefined;
+
+        if (wallId) {
+            structure = Game.getObjectById(wallId);
+
+            if ( !structure || structure.hits > desiredHealth) {
+                structure = undefined;
+                delete Memory.towers[tower.id].wallId;
+            }
+        }
+        
+        if (!structure) {
+            let healthThreshold = desiredHealth*0.8;
+            structure = RoomsUtils.findUnhealthyWallsAndRamparts(tower.room, healthThreshold);
+        }
+        if (structure) {
+            Memory.towers[tower.id].wallId = structure.id;
+
+            let code = tower.repair(structure);
+            // this.emote(creep, '👾 fortify', code);
+            if (code === OK || code === ERR_NOT_ENOUGH_RESOURCES)  {
+                tower.busy = 1;
+            } else if(code === ERR_INVALID_TARGET) {
+                console.log(`${tower} cannot fortify ${structure}`);
+                delete Memory.towers[tower.id].wallId;
+            }
+
+            if (!tower.busy) {
+                this.fortify(tower);
+            }
+        }
     }
 }
 
