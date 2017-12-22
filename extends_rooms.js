@@ -25,15 +25,15 @@ Room.serializeName = function (name) {
     const coords = Room.getCoordinates(name);
     let quad;
     if (coords.x_dir === 'E') {
-        quad = coords.y === 'N' ? '0' : '1';
+        quad = coords.y_dir === 'N' ? '0' : '1';
     } else {
-        quad = coords.y === 'S' ? '2' : '3';
+        quad = coords.y_dir === 'S' ? '2' : '3';
     }
     const x = String.fromCodePoint(+coords.x + +unicodeModifier);
     const y = String.fromCodePoint(+coords.y + +unicodeModifier);
     return `${quad}${x}${y}`;
 };
-  
+
 Room.deserializeName = function (sName) {
     if (sName === 'sim') {
         return 'sim';
@@ -44,7 +44,7 @@ Room.deserializeName = function (sName) {
     const y = sName.codePointAt(2) - unicodeModifier;
     return `${xDir}${x}${yDir}${y}`;
 };
-  
+
 Room.getCoordinates = function (name) {
     const coordinateRegex = /(E|W)(\d+)(N|S)(\d+)/g;
     const match = coordinateRegex.exec(name);
