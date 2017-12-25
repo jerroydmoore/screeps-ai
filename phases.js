@@ -12,7 +12,7 @@ let Phases = [
             // Goal: build a container for each source and 5 extensions.
             let desiredExtensionCount = 5,
                 desiredContainerCount = (room.find(FIND_SOURCES)||{}).length || 0,
-                structures = room.find(FIND_MY_STRUCTURES);
+                structures = room.find(FIND_STRUCTURES);
             
             for(let i=0;i<structures.length;i++) {
                 let structure = structures[i];
@@ -23,6 +23,8 @@ let Phases = [
                 } else if (structure.structureType === 'storage') {
                     desiredContainerCount--;
                 }
+
+                console.log(`container: ${desiredContainerCount}. ext: ${desiredExtensionCount}`);
                 if (desiredContainerCount <= 0 && desiredExtensionCount <= 0) {
                     return true;
                 }
