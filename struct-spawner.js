@@ -85,8 +85,9 @@ class StructSpawners extends StructBase {
             }
         }
 
-        if (Game.time % phase.SpawnPeriod === 0 && spawner.room.energyAvailable >= phase.minimumEnergyToSpawn) {
+        if (Game.time % phase.SpawnPeriod === 0) {
 
+            if (spawner.spawning) return;
             // CreepsUtil.spawn(spawner, roleScout.roleName, phase.Scout.parts);
 
             if (roleMiner.shouldSpawn(spawner)) {

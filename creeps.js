@@ -204,7 +204,7 @@ class CreepsBase {
 
         let hasEnoughEnergy = true;
         if (phase[this.roleName].minimumEnergyToSpawn) {
-            // optional field, if set will overwrite the phase minimumEnergyToSpawn
+            // optional field
             hasEnoughEnergy = phase[this.roleName].minimumEnergyToSpawn < spawner.room.energyAvailable;
         }
         return count < desiredCount && hasEnoughEnergy;

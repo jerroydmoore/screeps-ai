@@ -6,7 +6,6 @@ let Phases = [
         checkLevelPeriod: 1001,
         SpawnScoutAfterSkippedPeriods: -1,
         SpawnPeriod: 25,
-        minimumEnergyToSpawn: 250,
         checkGoal: (room) => {
 
             // Goal: build a container for each source and 5 extensions.
@@ -66,7 +65,6 @@ let Phases = [
         checkLevelPeriod: 1001,
         SpawnScoutAfterSkippedPeriods: 10,
         SpawnPeriod: 50,
-        minimumEnergyToSpawn: 550,
         checkGoal: (room) => {
             
             // Goal: Build one tower.
@@ -117,7 +115,6 @@ let Phases = [
         checkLevelPeriod: 1001,
         SpawnScoutAfterSkippedPeriods: 10,
         SpawnPeriod: 50,
-        minimumEnergyToSpawn: 550,
         checkGoal: () => false,
         Harvester: {
             count: 2,
@@ -128,7 +125,7 @@ let Phases = [
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Builder: {
-            count: 4,
+            count: 3,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Scout: {
