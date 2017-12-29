@@ -75,17 +75,6 @@ const utils = {
     isPosValid (x, y) {
         return utils.isCoordValid(x) && utils.isCoordValid(y);
     },
-    findFreeAdjecentPos: function (target) {
-        let pos = target.pos || target,
-            room = target.room || Game.rooms[pos.roomName],
-            obj = utils.findNearby(room, pos, 1, (p) => p.type === 'terrain' && p.terrain !== 'wall' && p.x !== pos.x && p.y !== pos.y);
-
-        if (!obj) {
-            console.log(`findFreeAdjecentPos(${target}) could not find any free adjacent pos`);
-            return;
-        }
-        return new RoomPosition(obj.x, obj.y, room.name);
-    },
     AvoidStructure: AvoidStructure,
     AVOID_LIST: {
         [STRUCTURE_ROAD]: new AvoidStructure(STRUCTURE_ROAD, {range: 0, resolveTo: FREE_BUT_DISQUALIFIED }),
@@ -97,7 +86,7 @@ const utils = {
         [STRUCTURE_TOWER]: new AvoidStructure(STRUCTURE_TOWER, {range: 7 }),
         [LOOK_SOURCES]: { range : 2, filter: (o) => o.type === LOOK_SOURCES }
     },
-    findFreePosNearby: function* (target, range, numOfFreeAdjecentSpaces=3, avoidEachOtherRange=2, avoidList=[], avoidIsCheckered=false) {
+    findFreePosNearby: function* (target, range, numOfFreeAdjacentSpaces=3, avoidEachOtherRange=2, avoidList=[], avoidIsCheckered=false) {
         let pos = target.pos || target,
             room = target.room,
             borderedRange = range+1;
@@ -152,8 +141,8 @@ const utils = {
 
                 // check candidate for tight spaces
                 let occupiedList = [OCCUPIED, AVOID_AREA];
-                let freeSpaces = utils._countQualifiedSpacesInRange(matrix, i, j, 1, occupiedList, numOfFreeAdjecentSpaces, 'type');
-                if (numOfFreeAdjecentSpaces > freeSpaces) {
+                let freeSpaces = utils._countQualifiedSpacesInRange(matrix, i, j, 1, occupiedList, numOfFreeAdjacentSpaces, 'type');
+                if (numOfFreeAdjacentSpaces > freeSpaces) {
                     matrix[i][j] = DISQUALIFIED_ENTRY;
                 }
             }
@@ -246,6 +235,7 @@ const utils = {
     _isCheckered([x, y], [xOrigin, yOrigin]) {
         return (x + xOrigin) % 2 === (y + yOrigin) % 2;
     },
+    printMatrix: printMatrix,
     gc: function () {
         for(let name in Memory.creeps) {
             if(!Game.creeps[name]) {

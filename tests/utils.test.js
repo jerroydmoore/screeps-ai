@@ -1,6 +1,5 @@
 require('./screeps-load-globals');
 const expect = require('chai').expect;
-const _ = require('lodash');
 const utils = require('../utils');
 
 describe('Utils Package', function() {
