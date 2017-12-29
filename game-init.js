@@ -4,15 +4,23 @@ module.exports = function(phaseNumber) {
     preamble += phaseNumber ? `[${phaseNumber}]` : '';
     console.log = (event) => logger(preamble + ' ' + event);
 
-    if (! Memory.gcl) Memory.gcl = Game.gcl.level;
+    if (! Memory.gcl) {
+        Memory.gcl = 0;
+        for(let roomName in Game.rooms) {
+            let room = Game.rooms[roomName];
+            if (room.controller && room.controller.my) {
+                Memory.gcl++;
+            }
+        }
+    }
 
     if (! Memory.recharge) Memory.recharge = {};
     if (! Memory.decon) Memory.decon = {};
     if (! Memory.con) Memory.con = {};
     if (! Memory.rooms) Memory.rooms = {};
-    for (let room in Game.rooms) {
-        if (! Memory.rooms[room.name]) {
-            Memory.rooms[room.name] = {};
+    for (let roomName in Game.rooms) {
+        if (! Memory.rooms[roomName]) {
+            Memory.rooms[roomName] = {};
         }
     }
     if (! Memory.towers) Memory.towers = {};
