@@ -1,4 +1,9 @@
 
+require('extends_roompositions');
+require('extends_rooms');
+require('extends_structure');
+require('extends_construction-site');
+
 const roleMiner = require('role.miner');
 const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
@@ -18,9 +23,6 @@ const RoomUtils = require('rooms');
 const BuildOrders = require('build-orders');
 const RoomDefense = require('room-defense');
 const initGame = require('game-init');
-
-require('extends_roompositions');
-require('extends_rooms');
 
 module.exports.loop = function () {
 

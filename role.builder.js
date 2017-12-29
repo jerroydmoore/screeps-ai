@@ -2,6 +2,7 @@ const roleHarvester = require('role.harvester');
 const CreepsBase = require('creeps');
 const RoomsUtils = require('rooms');
 const Phases = require('phases');
+const Utils = require('utils');
 
 const role = 'Builder';
 
@@ -53,7 +54,7 @@ class RoleBuilder extends CreepsBase {
             }
         }
     }
-    fortify(creep) {
+    fortify(creep, structure) {
         // find walls/ramparts to build up
         let phases = Phases.getCurrentPhaseInfo(creep.room);
         let desiredHealth = phases.RampartDesiredHealth;
@@ -61,15 +62,17 @@ class RoleBuilder extends CreepsBase {
             return;
         }
 
-        let wallId = creep.memory.wallId,
-            structure = undefined;
-
-        if (wallId) {
+        let wallId = creep.memory.wallId;
+        if (wallId && !structure) {
             structure = Game.getObjectById(wallId);
 
             if ( !structure || structure.hits > desiredHealth) {
                 structure = undefined;
                 delete creep.memory.wallId;
+                delete creep.memory.repairPos;
+                // If remembered thing not found, find another thing to do
+                // as to not waste this tick.
+                this.fortify(creep);
             }
         }
         
@@ -94,10 +97,6 @@ class RoleBuilder extends CreepsBase {
                 // unable to move?
                 this.suicide(creep);
             }
-
-            if (!creep.busy) {
-                this.fortify(creep);
-            }
         }
     }
     build (creep) {
@@ -107,14 +106,46 @@ class RoleBuilder extends CreepsBase {
         
         if (targetId) {
             target = Game.getObjectById(targetId);
-        } else {
+            if(! target) {
+                // the thing we were building is done. Find something else to do on this tick.
+
+                if (creep.memory.repairPos) {
+                    // fortify walls & ramparts immediately after built.
+                    let structure;
+                    if ( !creep.memory.wallId) {
+                        // find the thing first
+                        let pos = RoomPosition.deserialize(creep.memory.repairPos);
+                        structure = creep.room.lookForAt(LOOK_STRUCTURES, pos).find(s => s.isRampart());
+                        creep.memory.wallId = structure.id;
+                    }
+                    if (creep.memory.wallId) {
+                        return this.fortify(creep, structure);
+                    } else {
+                        // unable to find wall, give up trying to repair it.
+                        delete creep.memory.repairPos;
+                    }
+                }
+
+                if (! creep.memory.repairPos) {
+                    // Try to build another thing
+                    delete creep.memory.cId;
+                    return this.build(creep);
+                }
+            }
+        }
+        if (! target) {
             target = creep.pos.findClosestByPath(FIND_MY_CONSTRUCTION_SITES);
         }
 
         if (target) {
             creep.memory.cId = target.id;
+
+            if (target.isRampart() && !creep.memory.repairPos) {
+                // after we build, repair it immediately.
+                creep.memory.repairPos = target.pos.serialize();
+            }
             
-            let code = creep.build(target); 
+            let code = creep.build(target);
             this.emote(creep, '🚧 build', code);
             if (code === OK) {
                 creep.busy = 1;
@@ -134,11 +165,15 @@ class RoleBuilder extends CreepsBase {
     run (creep, skipRepair=false) {
 
         if(creep.memory.full) {
-            this.build(creep);
-            if (!creep.busy && !skipRepair) {
+            this.fortify(creep);
+            
+            if (! creep.busy && !skipRepair) {
                 this.repair(creep);
             }
-            this.fortify(creep);
+
+            if (! creep.busy) {
+                this.build(creep);
+            }
         } else {
             roleHarvester.harvest(creep);
         }

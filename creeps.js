@@ -148,20 +148,24 @@ class CreepsBase {
         if (source) {
             creep.memory.sId = source.id;
             let code;
+
             if (source instanceof Source || source instanceof Mineral) {
                 // is a Source or Mineral
-                if (source.ticksToRegeneration === 1) {
+                if (source.ticksToRegeneration === 1 && source.energy !== 0) {
                     console.log(source + ' wasted energy: ' + source.energy);
                 }
                 code = creep.harvest(source);
             } else {
                 code = creep.withdraw(source, RESOURCE_ENERGY);
+                // Don't build roads when going to / coming from picking up energy
+                // "noRoads" is deleted after energy is drained in preRun method
+                creep.memory.noRoads = 1;
             }
 
             this.emote(creep, '🔄 harvest', code);
 
             if (code === ERR_NOT_IN_RANGE) {
-                code = this.travelTo(creep, source, '#ffaa00'); //orange
+                code = this.travelTo(creep, source, '#ffaa00', creep.memory.noRoads); //orange
                 // What about using Storage???
             } else if (code === ERR_NOT_ENOUGH_RESOURCES) {
                 delete creep.memory.sId;
@@ -261,6 +265,8 @@ class CreepsBase {
         if(creep.memory.full && creep.carry.energy == 0) {
             delete creep.memory.full;
             delete creep.memory.rechargeId;
+            delete creep.memory.noRoads;
+            delete creep.memory.repairPos;
             // this.checkRenewOrRecycle(creep);
         }
         // this.tryRenewOrRecycle(creep);
