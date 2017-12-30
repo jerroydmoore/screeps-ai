@@ -1,6 +1,9 @@
 const StructBase = require('struct-base');
 const utils = require('utils');
 const AVOID_LIST = utils.AVOID_LIST;
+const Cache = require('cache');
+
+Cache.addEnergyProperties(StructureStorage.prototype);
 
 class StructStorage extends StructBase {
     constructor() {

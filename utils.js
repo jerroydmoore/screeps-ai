@@ -1,3 +1,5 @@
+const Cache = require('cache');
+
 class AvoidStructure {
     constructor(structureType, opts={}) {
         this.structureType = structureType;
@@ -236,6 +238,29 @@ const utils = {
         return (x + xOrigin) % 2 === (y + yOrigin) % 2;
     },
     printMatrix: printMatrix,
+    addMemoryProperty(prototype, memoryAttr) {
+        Object.defineProperty(prototype, 'memory', {
+            get: function() {
+                if(_.isUndefined(Memory[memoryAttr])) {
+                    Memory[memoryAttr] = {};
+                }
+                if(!_.isObject(Memory[memoryAttr])) {
+                    return undefined;
+                }
+                return Memory.spawns[this.id] = Memory[memoryAttr][this.id] || {};
+            },
+            set: function(value) {
+                if(_.isUndefined(Memory[memoryAttr])) {
+                    Memory[memoryAttr] = {};
+                }
+                if(!_.isObject(Memory[memoryAttr])) {
+                    throw new Error(`Could not set ${memoryAttr} memory`);
+                }
+                Memory[memoryAttr][this.id] = value;
+            },
+            configurable: true
+        });
+    },
     gc: function () {
         for(let name in Memory.creeps) {
             if(!Game.creeps[name]) {

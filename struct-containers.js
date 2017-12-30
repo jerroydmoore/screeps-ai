@@ -2,6 +2,9 @@ const StructBase = require('struct-base');
 const utils = require('utils');
 const AvoidStructure = utils.AvoidStructure;
 const AVOID_LIST = utils.AVOID_LIST;
+const Cache = require('cache');
+
+Cache.addEnergyProperties(StructureContainer.prototype);
 
 function findStorageAndContainers(s) {
     let type = s.structureType;

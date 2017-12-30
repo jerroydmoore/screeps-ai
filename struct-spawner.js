@@ -9,7 +9,9 @@ const roleBuilder = require('role.builder');
 const roleSettler = require('role.settler');
 const Phases = require('phases');
 const Roads = require('roads');
+const Cache = require('cache');
 
+Cache.addEnergyProperties(StructureSpawn.prototype);
 
 class StructSpawners extends StructBase {
     constructor() {

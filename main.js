@@ -22,7 +22,12 @@ const Extensions = require('struct-extensions');
 const RoomUtils = require('rooms');
 const BuildOrders = require('build-orders');
 const RoomDefense = require('room-defense');
+const utils = require('utils');
 const initGame = require('game-init');
+const Cache = require('cache');
+
+Cache.addEnergyProperties(Resource.prototype);
+Cache.addEnergyProperties(Source.prototype);
 
 module.exports.loop = function () {
 
@@ -30,6 +35,7 @@ module.exports.loop = function () {
     //console.log(`Game Loop ${Game.time}. Room Phase: ${phaseNumber}`)
 
     initGame(phaseNumber);
+    Cache.gc(); // GC Cache at the beginning of execution, since tick+1 must occur to evict stale caches
 
     // console.log(JSON.stringify(Game.cpu));
     
@@ -137,10 +143,19 @@ module.exports.loop = function () {
         if (!creep.busy) { // Upgrader, also the catch-all
             roleUpgrader.run(creep);
         }
+
+        if (creep.ticksToLive === 1) {
+            creep.say('☠️ dying');
+            // console.log(`${creep} ${creep.pos} died naturally.`);
+            for(const resourceType in creep.carry) {
+                creep.drop(resourceType);
+            }
+            // TODO Inform a Spawner to replace the creep.
+            delete Memory.creeps[creep.name];
+        }
     }
+    utils.gc(); // garbage collect the recently deseased creep
     Roads.gc();
-    roleHarvester.gc();
-    roleBuilder.gc();
     Towers.gc();
     Extensions.gc();
     RoomUtils.gc();

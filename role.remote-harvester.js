@@ -6,25 +6,6 @@ module.exports = {
     is: function(creep) {
         return creep.name.startsWith(module.exports.roleName);
     },
-    findLowEnergyStructures: function (room) {
-        if (!_lowEnergyStructs[room.id]) {
-            _lowEnergyStructs[room.id] = room.find(FIND_MY_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_EXTENSION
-                            || structure.structureType == STRUCTURE_SPAWN
-                            || structure.structureType == STRUCTURE_TOWER) &&
-                        structure.energy < structure.energyCapacity;
-                }
-            });
-            _lowEnergyStructs[room.id].forEach(x => {
-                x.harvesterCount = Memory.recharge[x.id] || 0;
-                if (x.harvesterCount === 0) Memory.recharge[x.id] = 0; // ensure the Memory location is allocated
-                return x;
-            });
-        }
-        return _lowEnergyStructs[room.id];
-    },
-
     harvest: function(creep) {
 
         let sourceId = creep.memory.sId,
@@ -65,31 +46,20 @@ module.exports = {
         if (creep.memory.rechargeId) {
             structure = Game.getObjectById(creep.memory.rechargeId);
             if(structure.energy === structure.energyCapacity) {
-                delete Memory.recharge[structure.id];
                 structure = undefined;
                 delete creep.memory.rechargeId;
                 
             }
         }
         if (!structure) {
-            // let targets = this.findLowEnergyStructures(creep.room);
-
-            // if (!targets.length) return;
-
-            // targets.sort((a, b) => a.harvesterCount - b.harvesterCount);
-            // structure = targets[0];
             structure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType == STRUCTURE_EXTENSION
                             || structure.structureType == STRUCTURE_SPAWN
                             || structure.structureType == STRUCTURE_TOWER) &&
-                        structure.energy < structure.energyCapacity;
+                        structure.projectedEnergy < structure.energyCapacity;
                 }
             });
-            if (structure) {
-                Memory.recharge[structure.id]++;
-                structure.harvesterCount++;
-            }
         }
         if (structure) {
             creep.memory.rechargeId = structure.id;

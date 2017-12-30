@@ -1,29 +1,10 @@
 const CreepsBase = require('creeps');
 
-let _lowEnergyStructs = {};
-
+const LOW_STRUCT_THRESHOLD = 0.9;
 const role = 'Harvester';
 class RoleHarvester extends CreepsBase {
     constructor() {
         super(role);
-    }
-    /* static */ findLowEnergyStructures (room) {
-        if (!_lowEnergyStructs[room.id]) {
-            _lowEnergyStructs[room.id] = room.find(FIND_MY_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_EXTENSION
-                            || structure.structureType == STRUCTURE_SPAWN
-                            || structure.structureType == STRUCTURE_TOWER) &&
-                        structure.energy < structure.energyCapacity;
-                }
-            });
-            _lowEnergyStructs[room.id].forEach(x => {
-                x.harvesterCount = Memory.recharge[x.id] || 0;
-                if (x.harvesterCount === 0) Memory.recharge[x.id] = 0; // ensure the Memory location is allocated
-                return x;
-            });
-        }
-        return _lowEnergyStructs[room.id];
     }
 
     run (creep) {
@@ -38,30 +19,23 @@ class RoleHarvester extends CreepsBase {
         if (creep.memory.rechargeId) {
             structure = Game.getObjectById(creep.memory.rechargeId);
             if(structure.energy === structure.energyCapacity) {
-                delete Memory.recharge[structure.id];
                 structure = undefined;
                 delete creep.memory.rechargeId;
                 
             }
         }
         if (!structure) {
-            // let targets = this.findLowEnergyStructures(creep.room);
-
-            // if (!targets.length) return;
-
-            // targets.sort((a, b) => a.harvesterCount - b.harvesterCount);
-            // structure = targets[0];
             structure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType == STRUCTURE_EXTENSION
                             || structure.structureType == STRUCTURE_SPAWN
                             || structure.structureType == STRUCTURE_TOWER) &&
-                        structure.energy < structure.energyCapacity;
+                        structure.projectedEnergy < (structure.energyCapacity * LOW_STRUCT_THRESHOLD);
                 }
             });
             if (structure) {
-                Memory.recharge[structure.id]++;
-                structure.harvesterCount++;
+                structure.projectedEnergy += creep.carryCapacity;
+                // console.log(`${structure}=energy(${structure.energy}) < projected(${structure.projectedEnergy}) < capacity(${structure.energyCapacity}). Diff=${structure.projectedEnergy-structure.energy}`);
             }
         }
         if (structure) {
@@ -79,9 +53,6 @@ class RoleHarvester extends CreepsBase {
                 this.travelTo(creep, structure,'#00FF3C'); // green
             }
         }
-    }
-    gc () {
-        _lowEnergyStructs = {};
     }
 }
 
