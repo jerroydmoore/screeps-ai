@@ -1,6 +1,10 @@
 const StructBase = require('struct-base');
 const utils = require('utils');
 const AVOID_LIST = utils.AVOID_LIST;
+const Cache = require('cache');
+
+// Utils.addMemoryProperty(StructureTower.prototype, 'ext');
+Cache.addEnergyProperties(StructureExtension.prototype);
 
 class StructExtensions extends StructBase {
     constructor() {

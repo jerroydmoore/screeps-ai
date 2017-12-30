@@ -107,13 +107,13 @@ module.exports = {
         return _unhealthyWallsAndRamparts[roomName].pop();
     },
 
-    findFallenResource(roomName) {
+    findFallenResource(roomName, mininumEnergy=25) {
         let room = Game.rooms[roomName];
         if ( !room) return;
 
         if ( !_fallenResource[roomName]) {
             _fallenResource[roomName] = room.find(FIND_DROPPED_RESOURCES, {
-                filter: { resourceType: RESOURCE_ENERGY }
+                filter: s => s.resourceType === RESOURCE_ENERGY && s.projectedEnergy > mininumEnergy
             });
         }
         

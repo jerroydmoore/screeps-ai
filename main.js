@@ -22,17 +22,21 @@ const Extensions = require('struct-extensions');
 const RoomUtils = require('rooms');
 const BuildOrders = require('build-orders');
 const RoomDefense = require('room-defense');
+const utils = require('utils');
 const initGame = require('game-init');
+const Cache = require('cache');
+
+Cache.addEnergyProperties(Resource.prototype);
+Cache.addEnergyProperties(Source.prototype);
 
 module.exports.loop = function () {
 
     let phaseNumber = Phases.getCurrentPhaseNumber(Game.spawns['Spawn1'].room);
-    //console.log(`Game Loop ${Game.time}. Room Phase: ${phaseNumber}`)
 
     initGame(phaseNumber);
+    Cache.calculateProjectedEnergy(); // recalculate projected energy at the beginning of each tick.
+    // TODO: What about Creeps/Towers that have finished charging last tick, and will clear this tick?
 
-    // console.log(JSON.stringify(Game.cpu));
-    
     if(Game.cpu.tickLimit < 50) {
         console.log('Game cpu dangerously low ' + JSON.stringify(Game.cpu));
         return;
@@ -137,10 +141,19 @@ module.exports.loop = function () {
         if (!creep.busy) { // Upgrader, also the catch-all
             roleUpgrader.run(creep);
         }
+
+        if (creep.ticksToLive === 1) {
+            creep.say('☠️ dying');
+            // console.log(`${creep} ${creep.pos} died naturally.`);
+            for(const resourceType in creep.carry) {
+                creep.drop(resourceType);
+            }
+            // TODO Inform a Spawner to replace the creep.
+            delete Memory.creeps[creep.name];
+        }
     }
+    utils.gc(); // garbage collect the recently deseased creep
     Roads.gc();
-    roleHarvester.gc();
-    roleBuilder.gc();
     Towers.gc();
     Extensions.gc();
     RoomUtils.gc();

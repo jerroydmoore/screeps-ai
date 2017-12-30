@@ -178,8 +178,6 @@ class RoleBuilder extends CreepsBase {
             roleHarvester.harvest(creep);
         }
     }
-    gc () {
-    }
 }
 
 module.exports = new RoleBuilder();

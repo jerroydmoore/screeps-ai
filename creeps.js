@@ -68,6 +68,9 @@ class CreepsBase {
         let resource;
         if (!creep.memory.fallenResourceId) {
             resource = RoomUtils.findFallenResource(creep.pos.roomName);
+            if (resource) {
+                resource.projectedEnergy -= creep.carryCapacity;
+            }
         } else {
             try {
                 resource = Game.getObjectById(creep.memory.fallenResourceId);
@@ -129,12 +132,17 @@ class CreepsBase {
         }
         if (sourceId) {
             source = Game.getObjectById(sourceId);
-        } else if (! this.pickupFallenResource(creep)) {
-            if (! ignoreContainers) {
+        }
+        if (! source) {
+            if ( this.pickupFallenResource(creep)) {
+                return;
+            } else if (! ignoreContainers) {
                 source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                     filter: (s) => {
                         if (s.structureType === 'storage' || s.structureType === 'container') {
-                            return s.store[RESOURCE_ENERGY] >= creep.carryCapacity;
+                            // return s.store[RESOURCE_ENERGY] >= creep.carryCapacity;
+                            // console.log(`${s} energy: ${s.store[RESOURCE_ENERGY]}=${s.energy}. Projected=${s.projectedEnergy}. Diff=${s.projectedEnergy-s.energy}`);
+                            return s.projectedEnergy >= creep.carryCapacity;
                         }
                         return false;
                     }
@@ -142,7 +150,15 @@ class CreepsBase {
                 // console.log(`${creep} withdraw ${source}`);
             }
             if (! source) {
-                source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+                source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE, {
+                    filter: s => s.projectedEnergy >= creep.carryCapacity
+                });
+            }
+            if (source) {
+                // only subtract if looking up creep.memory.sId failed
+                // Source from creep.memory.sId already counted in cache.js
+                // E.g. do not move below near harvest/withdraw invocations
+                source.projectedEnergy -= creep.carryCapacity;
             }
         }
         if (source) {
@@ -234,7 +250,6 @@ class CreepsBase {
         let code = spawner[action](bodyParts, label);
         
         Errors.check(spawner, action, code);
-        utils.gc(); // garbage collect the recently deseased creep
         return code;
     }
     /* static */ bodyPartCost (bodyParts) {
@@ -252,14 +267,6 @@ class CreepsBase {
 
         if (!creep.memory.origin) {
             creep.memory.origin = creep.room.controller.id;
-        }
-
-        if ( creep.ticksToLive === 1) {
-            creep.say('☠️ dying');
-            // console.log(`${creep} ${creep.pos} died naturally.`);
-            for(const resourceType in creep.carry) {
-                creep.drop(resourceType);
-            }
         }
 
         if(creep.memory.full && creep.carry.energy == 0) {
