@@ -1,5 +1,3 @@
-let _lowEnergyStructs = {};
-
 module.exports = {
     roleName: 'Harvester',
 
@@ -74,8 +72,5 @@ module.exports = {
                 this.travelTo(creep, structure,'#00FF3C'); // green
             }
         }
-    }, 
-    gc: function() {
-        _lowEnergyStructs = {};
     }
 };

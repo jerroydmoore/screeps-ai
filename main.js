@@ -52,14 +52,6 @@ module.exports.loop = function () {
             } });
 
         hasTowers[roomName] = false;
-        if (! Memory.rooms[roomName]) {
-            Memory.rooms[roomName] = RoomUtils.getInitialData(roomName);
-        }
-        
-        // let sites = room.find(FIND_MY_CONSTRUCTION_SITES, {filter: (s) => {
-        //     return s.structureType === STRUCTURE_ROAD;
-        // } });
-        // sites.forEach((x) => x.remove());
         
         for(let name in structures) {
             let s = structures[name];

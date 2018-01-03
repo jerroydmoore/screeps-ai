@@ -13,6 +13,7 @@ Cache.addEnergyProperties(StructureTower.prototype);
 class StructTowers extends StructBase {
     constructor() {
         super(STRUCTURE_TOWER, {
+            howmanyAtEachPoi: 1,
             minFreeAdjSpaces: 3,
             minPlacementDistance: 7,
             avoidList: [

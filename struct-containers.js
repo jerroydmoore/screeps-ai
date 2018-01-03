@@ -1,7 +1,6 @@
 const StructBase = require('struct-base');
 const utils = require('utils');
 const AvoidStructure = utils.AvoidStructure;
-const AVOID_LIST = utils.AVOID_LIST;
 const Cache = require('cache');
 
 Cache.addEnergyProperties(StructureContainer.prototype);
@@ -17,11 +16,10 @@ class StructContainer extends StructBase {
         let modifiedStorage = new AvoidStructure(STRUCTURE_STORAGE, {range: 7});
         super(STRUCTURE_CONTAINER, {
             howmanyAtEachPoi: 1,
-            minFreeAdjSpaces: 7,
+            minFreeAdjSpaces: 4,
             minPlacementDistance: 7,
             structureFilter: findStorageAndContainers,
             avoidList: [
-                AVOID_LIST[LOOK_SOURCES],
                 modifiedContainer,
                 modifiedStorage
             ]

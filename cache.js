@@ -150,7 +150,7 @@ class CacheMap extends Map {
             configurable: true
         });  
     }
-};
+}
 
 const Cache = new CacheMap();
 module.exports = Cache;
