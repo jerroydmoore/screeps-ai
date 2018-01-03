@@ -3,9 +3,10 @@ const Errors = require('errors');
 // orderStructures from https://github.com/ScreepsQuorum/screeps-quorum
 const orderStructures = [
     STRUCTURE_SPAWN,
+    STRUCTURE_STORAGE,
     STRUCTURE_TOWER,
     STRUCTURE_EXTENSION,
-    STRUCTURE_STORAGE,
+    STRUCTURE_CONTAINER,
     STRUCTURE_LINK,
     STRUCTURE_WALL,
     STRUCTURE_EXTRACTOR,
@@ -15,16 +16,20 @@ const orderStructures = [
     STRUCTURE_OBSERVER,
     STRUCTURE_NUKER,
     STRUCTURE_POWER_SPAWN,
-    STRUCTURE_ROAD,
-    STRUCTURE_CONTAINER
-];
+    STRUCTURE_ROAD
+];  
 
 const CONSTRUCTION_SITES_PER_ROOM_LIMIT = 4;
 const EXISTING_CONSTRUCTION_SITE_THRESHOLD = 95;
 const CONSTRUCTION_SITE_LIMIT= 100;
 
 function priorityStructureSort (a, b) {
-    return (orderStructures.indexOf(a.type) < orderStructures.indexOf(b.type) ? -1 : 1);
+    if (orderStructures.indexOf(a.type) === orderStructures.indexOf(b.type)) {
+        // "queue" helps maintain a FIFO among the same type.
+        // this is particularly useful for something like building a road!
+        return a.queue - b.queue;
+    }
+    return orderStructures.indexOf(a.type) - orderStructures.indexOf(b.type);
 }
 
 let _constructionSites = {};
@@ -66,7 +71,8 @@ const BuildOrders = {
         }
         
         // otherwise, nothing is here. Schedule the build.
-        orders.push({type, pos});
+        Memory.buildOrderCount = Memory.buildOrderCount || 1;
+        orders.push({type, pos, queue: Memory.buildOrderCount++});
         orders.sort(priorityStructureSort);
         Memory.con[room.name] = orders;
         return true;
