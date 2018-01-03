@@ -8,7 +8,7 @@ const roleMiner = require('role.miner');
 const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
 const roleBuilder = require('role.builder');
-const roleScout = require('role.scout');
+const roleRemoteBuilder = require('role.remote-builder');
 const roleSettler = require('role.settler');
 const Spawner = require('struct-spawner');
 const Phases = require('phases');
@@ -65,15 +65,14 @@ module.exports.loop = function () {
             let s = structures[name];
             if(s.structureType === STRUCTURE_SPAWN) {
                 hasSpawner = true;
-                // console.log('Phase ' + s.memory.phase);
                 Spawner.run(s);
             } else if (s.structureType === STRUCTURE_TOWER) {
                 Towers.run(s);
                 hasTowers[roomName] = true;
             }
         }
-
-        if (Game.time % 10 === 3) {
+        
+        if (hasSpawner && Game.time % 100 === 3) {
             // console.log('Attempting to build');
             // console.log('build orders: ' + Memory.con[room.name].length + ' ' + JSON.stringify(Memory.con[room.name].map(x => x.type)));
 
@@ -92,10 +91,8 @@ module.exports.loop = function () {
         if (!hasSpawner && room.controller.my) {
             let sites = Spawner.getMySites(room);
             if(sites.length === 0) {
-                console.log('building spawner in ' + room);
+                console.log(room + ' building first spawner');
                 Spawner.buildInRoom(room);
-            } else {
-                console.log(sites[0].pos);
             }
         }
     }
@@ -108,24 +105,17 @@ module.exports.loop = function () {
         // all preruns are the same.
         roleHarvester.preRun(creep);
 
-        if (creep.memory.claimed === 1) {
-            console.log('building spawner in ' + creep.room);
-            if (Spawner.buildInRoom(creep.room)) {
-                creep.memory.claimed = 2;
-            }
-        }
-
         if (roleMiner.is(creep)) {
             
             roleMiner.run(creep);
             continue;
         }
-        if (roleScout.is(creep)) {
-            roleScout.run(creep);
-            continue;
-        }
         if(roleSettler.is(creep)) {
             roleSettler.run(creep);
+            continue;
+        }
+        if(roleRemoteBuilder.is(creep)) {
+            roleRemoteBuilder.run(creep);
             continue;
         }
 

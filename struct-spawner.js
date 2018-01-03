@@ -5,7 +5,7 @@ const roleMiner = require('role.miner');
 const roleHarvester = require('role.harvester');
 const roleUpgrader = require('role.upgrader');
 const roleBuilder = require('role.builder');
-// const roleScout = require('role.scout');
+const roleRemoteBuilder = require('role.remote-builder');
 const roleSettler = require('role.settler');
 const Phases = require('phases');
 const Roads = require('roads');
@@ -87,47 +87,24 @@ class StructSpawners extends StructBase {
             }
         }
 
-        if (Game.time % phase.SpawnPeriod === 0) {
+        // Do not have all spawners run on the same tick.
+        if (Game.time % phase.SpawnPeriod == spawner.name[spawner.name.length-1]) {
 
             if (spawner.spawning) return;
-            // CreepsUtil.spawn(spawner, roleScout.roleName, phase.Scout.parts);
 
-            if (roleMiner.shouldSpawn(spawner)) {
-                spawner.memory.skippedSpawnCount = 0;
-                roleMiner.spawn(spawner);
-            } else if (roleHarvester.shouldSpawn(spawner)) {
-                spawner.memory.skippedSpawnCount = 0;
+            if (roleHarvester.shouldSpawn(spawner)) {
                 roleHarvester.spawn(spawner);
+            } else if (roleMiner.shouldSpawn(spawner)) {
+                roleMiner.spawn(spawner);
             } else if (roleBuilder.shouldSpawn(spawner)) {
-                spawner.memory.skippedSpawnCount = 0;
                 roleBuilder.spawn(spawner);
             } else if (roleUpgrader.shouldSpawn(spawner)) {
-                spawner.memory.skippedSpawnCount = 0;
                 roleUpgrader.spawn(spawner);
-            } else {
-                // determine if gcl.level > 1, then spawn one.
-                if (Game.gcl.level !== Memory.gcl && spawner.room.energyAvailable >= 900) {
-
-                    spawner.memory.skippedSpawnCount = 0;
-                    let code = roleSettler.spawn(spawner);
-                    if (code === OK) {
-                        Memory.gcl = Game.gcl.level;
-                    }
-                }
+            } else if (roleRemoteBuilder.shouldSpawn(spawner)) {
+                roleRemoteBuilder.spawn(spawner);
+            } else if (roleSettler.shouldSpawn(spawner)) {
+                roleSettler.spawn(spawner);
             }
-            // } else {
-            //     if (phase.SpawnScoutAfterSkippedPeriods > 0) {
-            //         // spawner.memory.skippedSpawnCount = 9
-            //         if (! spawner.memory.skippedSpawnCount) {
-            //             spawner.memory.skippedSpawnCount = 0;
-            //         }
-            //         if ( ++spawner.memory.skippedSpawnCount % phase.SpawnScoutAfterSkippedPeriods === 0) {
-            // CreepsUtil.spawn(spawner, roleScout.roleName, phase.Scout.parts);
-            //             spawner.memory.skippedSpawnCount = 0;
-            //         }
-            //     }
-            //     console.log(spawner + ' chance to spawn a scout. ' + `${spawner.memory.skippedSpawnCount}/${phase.SpawnScoutAfterSkippedPeriods}`)
-            // }
         }
     
         if(spawner.spawning) {

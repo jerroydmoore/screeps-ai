@@ -1,30 +1,33 @@
 const CreepsBase = require('creeps');
 
 class RoleMiners extends CreepsBase {
-    constructor() {
-        super('Miner');
+    constructor(role = 'Miner') {
+        super(role);
     }
 
     run (creep) {
         // the other creeps use 'sId' that is ephemoral
         // sourceId will persist
         if (! creep.memory.sourceId) {
-            let roomName = creep.room.name;
+            let room = creep.room;
             
-            Object.keys(Memory.rooms[roomName].sMiners).forEach(sId => {
+            Object.keys(room.memory.sMiners).forEach(sId => {
                 if (creep.memory.sourceId) return;
-                let minerId = Memory.rooms[roomName].sMiners[sId];
+                let minerId = room.memory.sMiners[sId];
 
                 // Miner might have died. Check if the id still resolves.
                 if (minerId && Game.getObjectById(minerId)) return;
 
-                Memory.rooms[roomName].sMiners[sId] = creep.id;
+                room.memory.sMiners[sId] = creep.id;
                 creep.memory.sourceId = sId;
             });
         }
 
         if (!creep.memory.full) {
-            this.harvest(creep, creep.memory.sourceId, true);
+            this.harvest(creep, {
+                sourceId: creep.memory.sourceId,
+                ignoreContainers: true
+            });
         } else {
             this.storeEnergy(creep);
         }

@@ -1,54 +1,54 @@
 const Errors = require('errors');
-const RoomUtils = require('rooms');
-const CreepsBase = require('creeps');
-const roleBuilder = require('role.builder');
+const AbstractRemoteCreep = require('abstract-remote-creep');
 
-class RoleSettler extends CreepsBase {
-    constructor() {
-        super('Settler');
+const FLAG_TTL = 205;
+class RoleSettler extends AbstractRemoteCreep {
+    constructor(roleName = 'Settler') {
+        super(roleName, COLOR_BLUE, COLOR_BLUE, 'ttlSettler', FLAG_TTL, 'settleId');
     }
     run (creep) {
-        // this.preRun()
+        // If not in targetRoom, go to next room
+        // If in targetRoom, claim Upgrader
+        // Repeat
+        // If Upgrader claimed, become a builder.
 
-        let roomName = creep.pos.roomName;
-        if (! creep.memory.prevRoom) {
-            creep.memory.prevRoom = roomName;
+        let destflag = this.getMyFlag(creep);
+        if (! destflag || destflag.secondaryColor === COLOR_CYAN) {
+            // The flag deleted itself. Recycle yourself.
+            this.travelTo(creep, destflag);
+            let spawn = destflag.room.lookForAt(LOOK_STRUCTURES, destflag).find(x => x.structureType === STRUCTURE_SPAWN);
+            let code = spawn.recycleCreep(creep);
+            console.log(`${spawn} results ${code}`);
+            if (code === OK) {
+                creep.drop(RESOURCE_ENERGY);
+            }
+            return;
         }
-        
-        Memory.rooms[roomName].lastChecked = Game.time;
 
-        // if we changed rooms, update the Exits
-        if (creep.memory.prevRoom !== roomName && creep.memory.roomOrders && creep.memory.roomOrders.length) {
-            let lastExitDir = creep.memory.roomOrders[0].exit,
-                lastRoom = Memory.rooms[creep.memory.prevRoom];
-            lastRoom.exits[lastExitDir] = roomName;
-            console.log(`${creep} updated room ${creep.memory.prevRoom} exit ${RoomUtils.EXIT_NAME[lastExitDir]}(${lastExitDir}) to ${roomName} - ${JSON.stringify(lastRoom)}`);
+        if (!creep.memory.full) {
+            this.harvest(creep, { notBuildRoads: true, alwaysPickupEnergy: true });
+        } else if (destflag.pos.roomName !== creep.pos.roomName) {
+            // go to our target room
+            this.travelTo(creep, destflag, false);
 
-            // update this room with last room info
-            let oppositeExitDir;
-            if (lastExitDir === FIND_EXIT_TOP) oppositeExitDir = FIND_EXIT_BOTTOM;
-            if (lastExitDir === FIND_EXIT_BOTTOM) oppositeExitDir = FIND_EXIT_TOP;
-            if (lastExitDir === FIND_EXIT_LEFT) oppositeExitDir = FIND_EXIT_RIGHT;
-            if (lastExitDir === FIND_EXIT_RIGHT) oppositeExitDir = FIND_EXIT_LEFT;
-            lastRoom = Memory.rooms[roomName];
-            lastRoom.exits[oppositeExitDir] = creep.memory.prevRoom;
-            console.log(`${creep} updated room ${roomName} exit ${RoomUtils.EXIT_NAME[oppositeExitDir]}(${oppositeExitDir}) to ${creep.memory.prevRoom} - ${JSON.stringify(lastRoom)}`);
-            creep.memory.prevRoom = roomName;
+        } else {
+            // we don't have the controller. Claim it.
+            this.claimController(creep);
+
+            if (! creep.busy) {
+                // We have the controller. Build the Spawner
+                this.build(creep);
+            }
         }
-        this.regularOrders(creep);
     }
-    regularOrders(creep) {
-        if (creep.memory.claimed === 2) {
-            // spawner built, now become a builder and build it
-            roleBuilder.run(creep);
-        } else if (creep.room.controller && !creep.room.controller.my) {
+    claimController(creep) {
+        if (creep.room.controller && !creep.room.controller.my) {
             let controller = creep.room.controller;
             if (!controller.owner || !controller.owner.username) {
                 //claim it!
                 let code = creep.claimController(controller);
                 if (code === OK) {
                     creep.busy = 1;
-                    creep.memory.claimed = 1;
                     
                 } else if (code === ERR_NOT_IN_RANGE) {
                     this.travelTo(creep, controller, '#b99cfb', true);
@@ -59,11 +59,6 @@ class RoleSettler extends CreepsBase {
                 } else {
                     Errors.check(creep, 'claimController', code);
                 }
-            }
-        } else if (! creep.busy) {
-            // then pick a direction, and exit that way.
-            if (! this.moveToNextRoom(creep, false)) {
-                this.regularOrders(creep);
             }
         }
     }

@@ -15,16 +15,16 @@ class Struct {
         this.gc();
     }
     getMyStructs(room) {
-        if (!this._structs[room.id]) {
-            this._structs[room.id] = room.find(FIND_STRUCTURES, {filter: this.structureFilter});
+        if (!this._structs[room.name]) {
+            this._structs[room.name] = room.find(FIND_STRUCTURES, {filter: this.structureFilter});
         }
-        return this._structs[room.id];
+        return this._structs[room.name];
     }
     getMySites (room) {
-        if (!this._sites[room.id]) {
-            this._sites[room.id] = room.find(FIND_CONSTRUCTION_SITES, {filter: this.structureFilter});
+        if (!this._sites[room.name]) {
+            this._sites[room.name] = room.find(FIND_CONSTRUCTION_SITES, {filter: this.structureFilter});
         }
-        return this._sites[room.id];
+        return this._sites[room.name];
     }
     getDesiredNumberOfStructs (room) {
         let lvl = room.controller.level;
@@ -56,6 +56,7 @@ class Struct {
             console.log('buildInRoom failed because it needs valid room');
             return;
         }
+        
         if(howmanyToBuild < 1) {
             // console.log(`No ${this.structureType} to create in ${room}. Already enough: ${howmanyBuilt}/${desired}`);
             return;
@@ -67,12 +68,14 @@ class Struct {
         let poiAreas = this.getBuildingPointsOfInterests(room);
         for(let target of poiAreas) {
 
-            let freePOSs = utils.findFreePosNearby(target, range, this.minFreeAdjSpaces, this.minPlacementDistance, this.avoidList, this.avoidIsCheckered),
+            // let debug = room.name === 'W3N7' && this.structureType === STRUCTURE_CONTAINER;
+            let debug = false;
+            let freePOSs = utils.findFreePosNearby(target, range, this.minFreeAdjSpaces, this.minPlacementDistance, this.avoidList, this.avoidIsCheckered, debug),
                 howmanyHere = 0,
                 roadList = [];
             
             for(let pos of freePOSs) {
-                // console.log(`Building ${this.structureType} ${howmanyToBuild}:${howmanyHere} at ${pos}`);
+                console.log(`${pos} Building ${howmanyToBuild}/${howmanyHere} ${this.structureType}`);
                 if (BuildOrders.schedule(room, this.structureType, pos)) {
                     howmanyToBuild--;
                     howmanyHere++;
