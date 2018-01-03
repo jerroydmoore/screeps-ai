@@ -46,7 +46,7 @@ module.exports = {
         data.lastChecked = Game.time;
         // TODO determine if it's neutral. Say/Mark it on the world map.
         // creep.signController(controller, text)
-        console.log(JSON.stringify(data));
+        // console.log(JSON.stringify(data));
         return data;
     },
 
@@ -179,15 +179,6 @@ module.exports = {
                 } else if (child === false) {
                     // an exit in this direction does not exist
                 } else {
-                    // let scout;
-                    // if (Memory.room && Memory.rooms[child] && Memory.rooms[child].scoutId) {
-                    //     console.log('found room already claimed by ' + Memory.rooms[child].scoutId)
-                    //     scout = Game.getObjectById(Memory.rooms[child].scoutId);
-                    // }
-                    // if (scout) {
-                    //     console.log(`Verified that room ${child} was already claimed by ${scout}`)
-                    // } else {
-                        
                     // value is a roomName, and we've been here before.
                     //console.log(`examining ${EXIT_NAME[exitDir]}(${exitDir}) ` + JSON.stringify(thisSegment))
                     // console.log(`bfs puth onto queue! ${EXIT_NAME[exitDir]}(${exitDir}) ` + JSON.stringify(thisSegment))
