@@ -5,7 +5,6 @@ const EXIT_NAME = {
     [FIND_EXIT_RIGHT]: 'FIND_EXIT_RIGHT'
 };
 
-let _fallenResource = {};
 let _lowHealthStructs = {};
 let _unhealthyWallsAndRamparts = {};
 
@@ -15,7 +14,6 @@ module.exports = {
 
     gc(force) {
         if (force || Game.time % 25 === 0) {
-            _fallenResource = {};
             _lowHealthStructs = {};
             _unhealthyWallsAndRamparts = {};
         }
@@ -107,20 +105,6 @@ module.exports = {
         return _unhealthyWallsAndRamparts[roomName].pop();
     },
 
-    findFallenResource(roomName, mininumEnergy=25) {
-        let room = Game.rooms[roomName];
-        if ( !room) return;
-
-        if ( !_fallenResource[roomName]) {
-            _fallenResource[roomName] = room.find(FIND_DROPPED_RESOURCES, {
-                filter: s => s.resourceType === RESOURCE_ENERGY && s.projectedEnergy > mininumEnergy
-            });
-        }
-        
-        if (_fallenResource[roomName]) {
-            return _fallenResource[roomName].pop();
-        }
-    },
     determineRoomName: function(roomName, exitDir) {
         let pre1 = roomName[0],
             leftright = parseInt(roomName[1]),
