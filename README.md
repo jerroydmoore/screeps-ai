@@ -5,6 +5,21 @@ This AI will quickly upgrade the controller level to 2. At which point, it will 
 
 It also has limited capability to scout out other rooms, and can very soon claim another room.
 
+## Development
+Set two environment variables, `SCREEPS_LOCAL` and `SCREEPS_SERVER`. These are used in grunt's `deploy` task to copy your transpiled JavaScript to the deployment directories. Then, run the following to transpile and deploy to localhost:
+
+```
+npm install
+grunt
+```
+
+If you're running Screeps on MacOS, Screeps's deployment directories should be set to `/Users/$USER/Library/Application Support/Screeps/scripts/$SERVER/default` where `$SERVER` is either `screeps.com` or `127_0_0_1___21025` for localhost.
+### Useful Commands
+* `grunt tslint` for linting
+* `grunt ts` to transpile `./src` into `./dist`
+* `grunt deploy:local` to copy `./dist` into the localhost screeps instance.
+* `grunt deploy:server` to copy `./dist` into the screeps.com's local cache directory on the file system
+
 ## AI Strategy
 The AI employs a number of strategies to achieve both room objectives and game objectives.
 ### Room Objective 1: Spawning in a New Room
