@@ -55,13 +55,15 @@ class RoomDefense {
         //     return res.terrain === 'wall' ? 1 : 0;
         // });
 
+        let walls = [ STRUCTURE_WALL, STRUCTURE_RAMPART ];
         for(let [j,i] of utils.getCoordsWithinRange(pos, range)) {
             let res = matrix[i][j].find(o => {
                 if (o.type === LOOK_TERRAIN && o.terrain === 'wall') {
                     return true;
-                } else if (o.type === LOOK_STRUCTURES && o.structure.structureType !== STRUCTURE_ROAD) {
+                // we want to fortify structures with ramparts. Essentially adds health.
+                } else if (o.type === LOOK_STRUCTURES && walls.includes(o.structure.structureType)) {
                     return true;
-                } else if (o.type === LOOK_CONSTRUCTION_SITES && o.constructionSite.structureType !== STRUCTURE_ROAD) {
+                } else if (o.type === LOOK_CONSTRUCTION_SITES && walls.includes(o.constructionSite.structureType)) {
                     return true;
                 }
                 let order = BuildOrders.getScheduledAt(room, pos);
