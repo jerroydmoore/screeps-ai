@@ -6,6 +6,7 @@ const RoomsUtils = require('rooms');
 const Phases = require('phases');
 const Cache = require('cache');
 const Utils = require('utils');
+const AvoidStructure = Utils.AvoidStructure;
 
 Utils.addMemoryProperty(StructureTower.prototype, 'towers');
 Cache.addEnergyProperties(StructureTower.prototype);
@@ -18,7 +19,7 @@ class StructTowers extends StructBase {
             minPlacementDistance: 7,
             avoidList: [
                 AVOID_LIST[STRUCTURE_TOWER],
-                
+                new AvoidStructure(STRUCTURE_EXTENSION, {range: 1 }),
                 AVOID_LIST[STRUCTURE_ROAD],
                 AVOID_LIST[STRUCTURE_SPAWN],
                 AVOID_LIST[STRUCTURE_CONTROLLER],

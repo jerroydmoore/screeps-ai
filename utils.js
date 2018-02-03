@@ -243,6 +243,9 @@ const utils = {
     },
     printMatrix: printMatrix,
     addMemoryProperty(prototype, memoryAttr) {
+        if(prototype.hasOwnProperty(memoryAttr)) {
+            return false;
+        }
         Object.defineProperty(prototype, 'memory', {
             get: function() {
                 if(_.isUndefined(Memory[memoryAttr])) {

@@ -37,8 +37,13 @@ class Struct {
             num = info[this.structureType + 'Range'];
         return num || 5;
     }
-    * getBuildingPointsOfInterests (room) {
+    * getBuildingPointsOfInterests (room, sortMethod) {
         let s = room.find(FIND_SOURCES);
+
+        if (sortMethod) {
+            s.sort(sortMethod);
+        }
+        
         for (let i=0;i<s.length;i++) {
             yield s[i];
         }

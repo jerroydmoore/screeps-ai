@@ -12,16 +12,14 @@ function findStorageAndContainers(s) {
 
 class StructContainer extends StructBase {
     constructor() {
-        let modifiedContainer = new AvoidStructure(STRUCTURE_CONTAINER, {range: 7});
-        let modifiedStorage = new AvoidStructure(STRUCTURE_STORAGE, {range: 7});
         super(STRUCTURE_CONTAINER, {
             howmanyAtEachPoi: 1,
             minFreeAdjSpaces: 4,
             minPlacementDistance: 7,
             structureFilter: findStorageAndContainers,
             avoidList: [
-                modifiedContainer,
-                modifiedStorage
+                new AvoidStructure(STRUCTURE_CONTAINER, {range: 7}),
+                // new AvoidStructure(STRUCTURE_STORAGE, {range: 7})
             ]
         });
     }

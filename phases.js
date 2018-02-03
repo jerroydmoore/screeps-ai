@@ -102,7 +102,7 @@ let Phases = [
             count: LOOK_SOURCES,
             minimumEnergyToSpawn: 250,
             // minimumEnergyToSpawn: 700,
-            parts: [ MOVE, WORK, CARRY, WORK, WORK, WORK, WORK, MOVE, MOVE ] // 700
+            parts: [ MOVE, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE ] // 700
         },
     }, {
         // Build defenses
@@ -145,7 +145,7 @@ let Phases = [
         Miner: {
             count: LOOK_SOURCES,
             minimumEnergyToSpawn: 700,
-            parts: [ WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE ] // 700
+            parts: [ WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE ] // 700
         },
     }
 ];

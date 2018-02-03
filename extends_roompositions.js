@@ -14,3 +14,7 @@ RoomPosition.deserialize = function (string) {
     const y = coordraw % 50;
     return new RoomPosition(x, y, roomname);
 };
+
+RoomPosition.prototype.equals = function (pos) {
+    return this.x == pos.x && this.y == pos.y && this.roomName == pos.roomName;
+};

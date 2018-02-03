@@ -102,7 +102,9 @@ class CreepsBase {
 
         let resource;
         if (!creep.memory.fallenResourceId) {
-            resource = RoomUtils.findFallenResource(creep.pos.roomName);
+            resource = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+                filter: s => s.resourceType === RESOURCE_ENERGY && s.projectedEnergy > 25
+            });
             if (resource) {
                 resource.projectedEnergy -= creep.carryCapacity;
             }
@@ -122,7 +124,7 @@ class CreepsBase {
         let code = creep.pickup(resource);
         if (this.emote(creep, '👏️ pickup')) {
             try {
-                console.log(`${creep} ${creep.pos} pick up ${resource.amount} ${resource.resourceType} at ${resource.pos}`);
+                // console.log(`${creep} ${creep.pos} pick up ${creep.carryCapacity}/${resource.amount} ${resource.resourceType} at ${resource.pos}`);
             } catch(ex) {
                 // ignore errors thrown
             }
@@ -171,12 +173,16 @@ class CreepsBase {
         if (opts.sourceId) {
             source = Game.getObjectById(opts.sourceId);
         }
+        opts.ignore = opts.ignore || [];
         if (! source) {
             if ( this.pickupFallenResource(creep)) {
                 return;
-            } else if (! opts.ignoreContainers) {
+            } else {
                 source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                     filter: (s) => {
+                        if (opts.ignore.includes(s.structureType)) {
+                            return false;
+                        }
                         if (s.structureType === 'storage' || s.structureType === 'container') {
                             // return s.store[RESOURCE_ENERGY] >= creep.carryCapacity;
                             // console.log(`${s} energy: ${s.store[RESOURCE_ENERGY]}=${s.energy}. Projected=${s.projectedEnergy}. Diff=${s.projectedEnergy-s.energy}`);

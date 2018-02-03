@@ -9,7 +9,7 @@ class RoleHarvester extends CreepsBase {
 
     run (creep) {
         if (!creep.memory.full) {
-            this.harvest(creep);
+            this.harvest(creep, { ignore: creep.memory.ignore });
         } else {
             this.recharge(creep);
         }
@@ -33,6 +33,13 @@ class RoleHarvester extends CreepsBase {
                         structure.projectedEnergy < (structure.energyCapacity * LOW_STRUCT_THRESHOLD);
                 }
             });
+            if (! structure && creep.room.memory.storageId) {
+                // if things do not need to be recharged, fill up storage.
+                structure = Game.getObjectById(creep.room.memory.storageId);
+                creep.memory.ignore = [STRUCTURE_STORAGE];
+            } else {
+                delete creep.memory.ignore;
+            }
             if (structure) {
                 structure.projectedEnergy += creep.carryCapacity;
                 // console.log(`${structure}=energy(${structure.energy}) < projected(${structure.projectedEnergy}) < capacity(${structure.energyCapacity}). Diff=${structure.projectedEnergy-structure.energy}`);
