@@ -12,6 +12,14 @@ class AvoidStructure {
     }
 }
 
+function isEdge(i, j, {x, y}, range) {
+    // console.log(`abs(${j} - ${x}) === ${range} || abs(${i} - ${y}) === ${range}`);
+    return Math.abs(j - x) === range || Math.abs(i - y) === range;
+}
+function isCloseToRoomEdge(i,j) {
+    return i < 3 || j < 3 || i > 46 || j > 46;
+}
+
 // eslint-disable-next-line no-unused-vars
 function printMatrix(matrix, message, transformer) {
     transformer = transformer || (x => x.type);
@@ -97,16 +105,12 @@ const utils = {
 
         avoidList.forEach(x => x.type = x.type || AVOID_AREA);
 
-        function isEdge(i, j, {x, y}, range) {
-            // console.log(`abs(${j} - ${x}) === ${range} || abs(${i} - ${y}) === ${range}`);
-            return Math.abs(j - x) === range || Math.abs(i - y) === range;
-        }
         // start in a corner and work across
         let matrix = utils.getNearby(room, pos, borderedRange, false);
 
         for(let [j,i] of utils.getCoordsWithinRange(pos, borderedRange)) {
             let initialValue = FREE_ENTRY;
-            if (isEdge(i, j, pos, borderedRange)) {
+            if (isEdge(i, j, pos, borderedRange) || isCloseToRoomEdge(i,j)) {
                 // we want to mark the border as a DISQUALIFIED_ENTRY
                 initialValue = DISQUALIFIED_ENTRY;
             }
