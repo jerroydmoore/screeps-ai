@@ -1,3 +1,5 @@
+const RoomUtils = require('rooms');
+
 module.exports = function(phaseNumber) {
     let logger = console.log;
     let preamble = '#' + Game.time;
@@ -14,13 +16,12 @@ module.exports = function(phaseNumber) {
         }
     }
 
-    if (! Memory.recharge) Memory.recharge = {};
     if (! Memory.decon) Memory.decon = {};
     if (! Memory.con) Memory.con = {};
     if (! Memory.rooms) Memory.rooms = {};
     for (let roomName in Game.rooms) {
         if (! Memory.rooms[roomName]) {
-            Memory.rooms[roomName] = {};
+            Memory.rooms[roomName] = RoomUtils.getInitialData(roomName);
         }
     }
     if (! Memory.towers) Memory.towers = {};

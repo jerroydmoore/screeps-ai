@@ -1,5 +1,5 @@
 function isExpired(entry) {
-    return entry.expireTick <= Game.time;
+    return entry ? entry.expireTick <= Game.time : true;
 }
 class CacheEntry extends Map {
     constructor() {
@@ -55,10 +55,15 @@ class CacheMap extends Map {
         }
     }
     calculateProjectedEnergy() {
+
+        for(let cache of this.values()) {
+            cache.delete('projectedEnergy');
+        }
+
         for(let name in Game.creeps) {
             let creep = Game.creeps[name],
                 id = creep.memory.rechargeId;
-    
+
             /**
              * Extensions/Spawns/Towers S. with Energy E. E' = E.
              * Iterate through Creeps C, if C.rechargeId = S.id, E' += C.capacity;
@@ -66,8 +71,14 @@ class CacheMap extends Map {
              * Re-generate at beginning of next ticks.
              */
             if( id) {
-                let target = Game.getObjectById(id),
-                    cache = this.get(id),
+                let target = Game.getObjectById(id);
+
+                if (! target) {
+                    delete creep.memory.rechargeId;
+                    continue;
+                }
+
+                let cache = this.get(id),
                     energy = cache.getValue('projectedEnergy') || target.energy;
                 
                 cache.setValue('projectedEnergy', energy + creep.carryCapacity, {ttl: 1});
@@ -84,7 +95,6 @@ class CacheMap extends Map {
                 let target = Game.getObjectById(id),
                     cache = this.get(id),
                     energy = cache.getValue('projectedEnergy') || target.energy;
-                
                 cache.setValue('projectedEnergy', energy - creep.carryCapacity, {ttl: 1});
             }
             id = creep.memory.fallenResourceId;
@@ -130,22 +140,16 @@ class CacheMap extends Map {
         Object.defineProperty(prototype, 'projectedEnergy', {
             get() {
                 let cache = Cache.get(this.id);
-                if ( !cache.hasValue('projectedEnergy')) {
-                    Cache.calculateProjectedEnergy();
-                }
                 return cache.getValue('projectedEnergy') || this.energy;
             },
             set(value) {
                 let cache = Cache.get(this.id);
-                if ( !cache.hasValue('projectedEnergy')) {
-                    Cache.calculateProjectedEnergy();
-                }
                 cache.setValue('projectedEnergy', value, {ttl: 1});
             },
             configurable: true
         });  
     }
-};
+}
 
 const Cache = new CacheMap();
 module.exports = Cache;

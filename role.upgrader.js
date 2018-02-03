@@ -11,8 +11,12 @@ class RoleUpgrader extends CreepsBase {
         if(creep.memory.full) {
 
             let controller = creep.room.controller;
-            if (controller.id !== creep.memory.origin) {
-                controller = Game.getObjectById(creep.memory.origin);
+            if (controller.room.name !== creep.memory.origin) {
+                controller = Game.rooms[creep.memory.origin].controller;
+            }
+            if (! controller) {
+                console.log(`${creep} cannot find its controller. Assigned to ${creep.memory.origin}.`);
+                return;
             }
             if (!controller.my) {
                 console.log(`${creep} attempting to upgrade at a ${controller} not owned by us!`);

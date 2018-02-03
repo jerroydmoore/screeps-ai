@@ -1,20 +1,7 @@
 const Errors = require('errors');
 const RoomUtils = require('rooms');
 const Roads = require('roads');
-const utils = require('utils');
 const Phases = require('phases');
-
-// already declared
-// const BODYPART_COST = {
-//     [MOVE]: 50,
-//     [WORK]: 100,
-//     [ATTACK]: 80,
-//     [CARRY]: 50,
-//     [HEAL]: 250,
-//     [RANGED_ATTACK]: 150,
-//     [TOUGH]: 10,
-//     [CLAIM]: 600
-// };
 
 class CreepsBase {
     constructor(role) {
@@ -63,11 +50,61 @@ class CreepsBase {
         return code;
     }
 
+    // travelToRoom (creep, roomName, buildRoads=true) {
+    //     let buildRoadNetwork = false;
+
+    //     // When entering a new room, find the next exit, build a road to the exit
+    //     if (! creep.memory.currRoom) {
+    //         creep.memory.currRoom = creep.pos.roomName;
+    //     }
+    //     if (creep.memory.currRoom !== creep.pos.roomName) {
+    //         console.log(creep + ' room changed!');
+    //         delete creep.memory.destPos;
+    //         buildRoadNetwork = buildRoads;
+    //         creep.memory.currRoom = creep.pos.roomName;
+    //     }
+
+    //     let dest;
+    //     if(! creep.memory.destPos) {
+    //         let route = Game.map.findRoute(creep.room, roomName);
+    //         if (! route || !route.length) {
+    //             console.log(`${creep} cannot travel to room ${roomName}. No Route found`);
+    //             return;
+    //         }
+    //         console.log(creep + ' route ' + JSON.stringify(route));
+    //         dest = creep.pos.findClosestByPath(route[0].exit);
+    //         creep.memory.destPos = dest.serialize();
+    //     }
+    //     if (! creep.memory.destPos) {
+    //         console.log(`${creep} unable to find position/route to ${roomName}`);
+    //         return;
+    //     }
+    //     if (! dest) {
+    //         dest = RoomPosition.deserialize(creep.memory.destPos);
+    //     }
+
+    //     let code = this.travelTo(creep, dest, '#5d80b2', true);
+    //     console.log(`${creep} travelTo(${dest}) code: ${code}`);
+    //     Errors.check(creep, `travelTo(${dest})`, code);
+    //     if (code === ERR_INVALID_TARGET) {
+    //         delete creep.memory.destPos;
+    //     }
+
+    //     if (buildRoadNetwork) {
+    //         // Build Road Network
+    //         console.log('building road network');
+    //         Roads.connect(creep, [dest]);
+    //         BuildOrders.execute(creep.room);
+    //     }
+    // }
+
     pickupFallenResource(creep) {
 
         let resource;
         if (!creep.memory.fallenResourceId) {
-            resource = RoomUtils.findFallenResource(creep.pos.roomName);
+            resource = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+                filter: s => s.resourceType === RESOURCE_ENERGY && s.projectedEnergy > 25
+            });
             if (resource) {
                 resource.projectedEnergy -= creep.carryCapacity;
             }
@@ -87,7 +124,7 @@ class CreepsBase {
         let code = creep.pickup(resource);
         if (this.emote(creep, '👏️ pickup')) {
             try {
-                console.log(`${creep} ${creep.pos} pick up ${resource.amount} ${resource.resourceType} at ${resource.pos}`);
+                // console.log(`${creep} ${creep.pos} pick up ${creep.carryCapacity}/${resource.amount} ${resource.resourceType} at ${resource.pos}`);
             } catch(ex) {
                 // ignore errors thrown
             }
@@ -120,25 +157,32 @@ class CreepsBase {
         return false;
     }
 
-    harvest (creep, sourceId, ignoreContainers) {
-        // sourceId is optional.
+    harvest (creep, opts={}) {
+        // opts.sourceId is optional.
         // Gives you the option to override the "find Closest" logic
         let source = undefined;
 
         if (creep.busy) return;
         
-        if(! sourceId && creep.memory.sId) {
-            sourceId = creep.memory.sId;
+        if(opts.alwaysPickupEnergy && this.pickupFallenResource(creep)) {
+            return;
         }
-        if (sourceId) {
-            source = Game.getObjectById(sourceId);
+        if(! opts.sourceId && creep.memory.sId) {
+            opts.sourceId = creep.memory.sId;
         }
+        if (opts.sourceId) {
+            source = Game.getObjectById(opts.sourceId);
+        }
+        opts.ignore = opts.ignore || [];
         if (! source) {
             if ( this.pickupFallenResource(creep)) {
                 return;
-            } else if (! ignoreContainers) {
+            } else {
                 source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                     filter: (s) => {
+                        if (opts.ignore.includes(s.structureType)) {
+                            return false;
+                        }
                         if (s.structureType === 'storage' || s.structureType === 'container') {
                             // return s.store[RESOURCE_ENERGY] >= creep.carryCapacity;
                             // console.log(`${s} energy: ${s.store[RESOURCE_ENERGY]}=${s.energy}. Projected=${s.projectedEnergy}. Diff=${s.projectedEnergy-s.energy}`);
@@ -170,6 +214,7 @@ class CreepsBase {
                 if (source.ticksToRegeneration === 1 && source.energy !== 0) {
                     console.log(source + ' wasted energy: ' + source.energy);
                 }
+                // console.log(`${source.pos}: ${source.energy}  ${source.projectedEnergy}.   ${creep} `);
                 code = creep.harvest(source);
             } else {
                 code = creep.withdraw(source, RESOURCE_ENERGY);
@@ -181,7 +226,7 @@ class CreepsBase {
             this.emote(creep, '🔄 harvest', code);
 
             if (code === ERR_NOT_IN_RANGE) {
-                code = this.travelTo(creep, source, '#ffaa00', creep.memory.noRoads); //orange
+                code = this.travelTo(creep, source, '#ffaa00', creep.memory.noRoads || opts.notBuildRoads); //orange
                 // What about using Storage???
             } else if (code === ERR_NOT_ENOUGH_RESOURCES) {
                 delete creep.memory.sId;
@@ -193,14 +238,15 @@ class CreepsBase {
             console.log(`${creep} at ${creep.pos} could not find any available sources`);
         }
         creep.busy = 1;
+        return source;
     }
 
     shouldSpawn(spawner) {
         let roomName = spawner.room.name,
-            creeps = _.filter(Game.creeps, creep => roomName === creep.room.name && this.is(creep)),
-            count = creeps.length,
             phase = Phases.getCurrentPhaseInfo(spawner.room),
-            phaseRole = phase[this.roleName];
+            phaseRole = phase[this.roleName],
+            creeps = _.filter(Game.creeps, creep => (roomName === creep.room.name || phaseRole.shardwide) && this.is(creep)),
+            count = creeps.length;
 
         if (! phaseRole) {
             console.log(`No entry for role ${this.roleName} in Phase ${phase.level}`);
@@ -266,7 +312,7 @@ class CreepsBase {
     preRun (creep) {
 
         if (!creep.memory.origin) {
-            creep.memory.origin = creep.room.controller.id;
+            creep.memory.origin = creep.room.name;
         }
 
         if(creep.memory.full && creep.carry.energy == 0) {
@@ -287,6 +333,115 @@ class CreepsBase {
 
     run (creep) {
         console.log(creep + ': ' + this.roleName + ' does not have a run action defined');
+    }
+
+    build (creep) {
+
+        let targetId = creep.memory.cId,
+            target = undefined;
+        
+        if (targetId) {
+            target = Game.getObjectById(targetId);
+            if(! target) {
+                // the thing we were building is done. Find something else to do on this tick.
+
+                if (creep.memory.repairPos) {
+                    // fortify walls & ramparts immediately after built.
+                    let structure;
+                    if ( !creep.memory.wallId) {
+                        // find the thing first
+                        let pos = RoomPosition.deserialize(creep.memory.repairPos);
+                        structure = creep.room.lookForAt(LOOK_STRUCTURES, pos).find(s => s.isRampart());
+                        creep.memory.wallId = structure.id;
+                    }
+                    if (creep.memory.wallId) {
+                        return this.fortify(creep, structure);
+                    } else {
+                        // unable to find wall, give up trying to repair it.
+                        delete creep.memory.repairPos;
+                    }
+                }
+
+                if (! creep.memory.repairPos) {
+                    // Try to build another thing
+                    delete creep.memory.cId;
+                    return this.build(creep);
+                }
+            }
+        }
+        if (! target) {
+            target = creep.pos.findClosestByPath(FIND_MY_CONSTRUCTION_SITES);
+        }
+
+        if (target) {
+            creep.memory.cId = target.id;
+
+            if (target.isRampart() && !creep.memory.repairPos) {
+                // after we build, repair it immediately.
+                creep.memory.repairPos = target.pos.serialize();
+            }
+            
+            let code = creep.build(target);
+            this.emote(creep, '🚧 build', code);
+            if (code === OK) {
+                creep.busy = 1;
+            } else if(code == ERR_NOT_IN_RANGE) {
+                this.travelTo(creep, target, '#ffe56d');
+            } else if(code === ERR_INVALID_TARGET) {
+                delete creep.memory.cId;
+            } else if (code === ERR_NO_BODYPART) {
+                // unable to build?
+                this.suicide(creep);
+            }
+        } else if(targetId) {
+            delete creep.memory.cId;
+        }
+    }
+
+    fortify(creep, structure) {
+        // find walls/ramparts to build up
+        let phases = Phases.getCurrentPhaseInfo(creep.room);
+        let desiredHealth = phases.RampartDesiredHealth;
+        if (! desiredHealth) {
+            return;
+        }
+
+        let wallId = creep.memory.wallId;
+        if (wallId && !structure) {
+            structure = Game.getObjectById(wallId);
+
+            if ( !structure || structure.hits > desiredHealth) {
+                structure = undefined;
+                delete creep.memory.wallId;
+                delete creep.memory.repairPos;
+                // If remembered thing not found, find another thing to do
+                // as to not waste this tick.
+                this.fortify(creep);
+            }
+        }
+        
+        if (!structure) {
+            let healthThreshold = desiredHealth*0.8;
+            structure = RoomUtils.findUnhealthyWallsAndRamparts(creep.room, healthThreshold);
+        }
+        if (structure) {
+            creep.memory.wallId = structure.id;
+
+            let code = creep.repair(structure);
+            // this.emote(creep, '👾 fortify', code);
+            if (code === OK || code === ERR_NOT_ENOUGH_RESOURCES)  {
+                creep.busy = 1;
+            }
+            if(code == ERR_NOT_IN_RANGE) {
+                this.travelTo(creep, structure, '#FF0000'); // red
+            } else if(code === ERR_INVALID_TARGET) {
+                console.log(`${creep} cannot fortify ${structure}`);
+                delete creep.memory.wallId;
+            } else if (code === ERR_NO_BODYPART) {
+                // unable to move?
+                this.suicide(creep);
+            }
+        }
     }
 
     checkRenewOrRecycle(creep) {
@@ -365,67 +520,6 @@ class CreepsBase {
             return code;
         }
         return false;
-    }
-
-    moveToNextRoom (creep, hostiles=false) {
-        let target,
-            roomName = creep.pos.roomName;
-        
-        if (creep.memory.roomOrders && creep.memory.roomOrders.length) {
-            let dest = creep.memory.roomOrders[0];
-            if (dest.roomName !== roomName) {
-                // we've entered the next room, update orders
-                creep.memory.roomOrders.shift();
-                if (creep.memory.roomOrders.length) {
-                    console.log(`${creep} ${creep.pos} room changed ${dest.roomName} -> ${roomName} ` + JSON.stringify(creep.memory.roomOrders));
-                    dest = creep.memory.roomOrders[0];
-                } else {
-                    // we've entered our destination room, attack!
-                    delete creep.memory.roomorders;
-                    return false;
-                }
-            }
-            target = dest.exit;
-            return true;
-        }
-        
-        if (! target && hostiles) {
-            // no orders, find a room with an enemy and go there.
-            for(let roomName in Memory.rooms) {
-                if (Memory.rooms[roomName].hasEnemy !== 1) continue;
-                
-                creep.memory.roomOrders = Game.map.findRoute(creep.room, roomName).map(x => { return {exit: x.exit, roomName: x.room};});
-                console.log('Game orders');
-                console.log(JSON.stringify(creep.memory.roomOrders));
-                target = creep.memory.roomOrders[0].exit;
-            }
-        }
-        if (target === undefined) {
-            // otherwise, find the closest unknown room, and go there.
-            let ref = Memory.rooms[roomName];
-            // console.log(creep + 'about to execute bfs')
-            
-            let path = RoomUtils.bfs(ref);
-            
-            let displayPath = path.map(x => { return {exit: RoomUtils.EXIT_NAME[x.exit], roomName: x.roomName}; });
-            console.log(creep + ' bfs Path ' + JSON.stringify(displayPath));
-
-            creep.memory.roomOrders = path;
-            target = target = creep.memory.roomOrders[0].exit;
-        }
-        if (target) {
-            let dest = creep.pos.findClosestByPath(target);
-            // console.log(`${creep} ${creep.pos} scouting to ${dest} ${RoomUtils.EXIT_NAME[target]}(${target})`)
-
-            let code = this.travelTo(creep, dest, '#5d80b2', true);
-            Errors.check(creep, `travelTo(${dest})`, code);
-            if (code === ERR_INVALID_TARGET) {
-                delete creep.memory.roomOrders;
-            }
-            
-        } else {
-            console.log(`${creep} could not find an exit/target`);
-        }
     }
 }
 

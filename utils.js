@@ -14,6 +14,14 @@ class AvoidStructure {
     }
 }
 
+function isEdge(i, j, {x, y}, range) {
+    // console.log(`abs(${j} - ${x}) === ${range} || abs(${i} - ${y}) === ${range}`);
+    return Math.abs(j - x) === range || Math.abs(i - y) === range;
+}
+function isCloseToRoomEdge(i,j) {
+    return i < 3 || j < 3 || i > 46 || j > 46;
+}
+
 // eslint-disable-next-line no-unused-vars
 function printMatrix(matrix, message, transformer) {
     transformer = transformer || (x => x.type);
@@ -88,25 +96,23 @@ const utils = {
         [STRUCTURE_TOWER]: new AvoidStructure(STRUCTURE_TOWER, {range: 7 }),
         [LOOK_SOURCES]: { range : 2, filter: (o) => o.type === LOOK_SOURCES }
     },
-    findFreePosNearby: function* (target, range, numOfFreeAdjacentSpaces=3, avoidEachOtherRange=2, avoidList=[], avoidIsCheckered=false) {
+    findFreePosNearby: function* (target, range, numOfFreeAdjacentSpaces=3, avoidEachOtherRange=2, avoidList=[], avoidIsCheckered=false, logging=false) {
         let pos = target.pos || target,
             room = target.room,
             borderedRange = range+1;
 
-        //console.log('findFreePosNearby(' + target + pos + range);
+        if (logging) {
+            console.log(`findFreePosNearby(${target}, ${pos}, ${range})`);
+        }
 
         avoidList.forEach(x => x.type = x.type || AVOID_AREA);
 
-        function isEdge(i, j, {x, y}, range) {
-            // console.log(`abs(${j} - ${x}) === ${range} || abs(${i} - ${y}) === ${range}`);
-            return Math.abs(j - x) === range || Math.abs(i - y) === range;
-        }
         // start in a corner and work across
         let matrix = utils.getNearby(room, pos, borderedRange, false);
 
         for(let [j,i] of utils.getCoordsWithinRange(pos, borderedRange)) {
             let initialValue = FREE_ENTRY;
-            if (isEdge(i, j, pos, borderedRange)) {
+            if (isEdge(i, j, pos, borderedRange) || isCloseToRoomEdge(i,j)) {
                 // we want to mark the border as a DISQUALIFIED_ENTRY
                 initialValue = DISQUALIFIED_ENTRY;
             }
@@ -130,7 +136,9 @@ const utils = {
             }, initialValue);
         }
 
-        // printMatrix(matrix, 'After processing terrain');
+        if (logging) {
+            printMatrix(matrix, 'After processing terrain');
+        }
 
         // now that we've reduced. find the avoided areas, e.g. extensions, and tight spaces
         for(let [j,i] of utils.getCoordsWithinRange(pos, range)) {
@@ -150,7 +158,9 @@ const utils = {
             }
         }
 
-        // printMatrix(matrix, 'After marking avoid areas');
+        if (logging) {
+            printMatrix(matrix, 'After marking avoid areas');
+        }
 
         // yield free spaces, starting from the target
         for(let [j,i] of utils.getCoordsWithinRange(pos, range)) {
@@ -239,6 +249,9 @@ const utils = {
     },
     printMatrix: printMatrix,
     addMemoryProperty(prototype, memoryAttr) {
+        if(prototype.hasOwnProperty(memoryAttr)) {
+            return false;
+        }
         Object.defineProperty(prototype, 'memory', {
             get: function() {
                 if(_.isUndefined(Memory[memoryAttr])) {
@@ -263,8 +276,35 @@ const utils = {
     },
     gc: function () {
         for(let name in Memory.creeps) {
-            if(!Game.creeps[name]) {
+            if(! Game.creeps[name]) {
                 delete Memory.creeps[name];
+            }
+        }
+        for(let name in Memory.flags) {
+            if(! Game.flags[name]) {
+                delete Memory.flags[name];
+                continue;
+            }
+            let flag = Game.flags[name];
+            if(flag.color === COLOR_BLUE) {
+                let phase;
+                if (flag.room.memory[flag.pos.roomName]) {
+                    phase = flag.room.memory[flag.pos.roomName].phase;
+                }
+                if(flag.secondaryColor === COLOR_BLUE) {
+                    if (! phase) {
+                        continue;
+                    }
+                    // if phase === 1||2, send aide. if phase > 3, delete flag.
+                    if (phase < 3) {
+                        flag.setColor(COLOR_BLUE, COLOR_CYAN);
+                    }
+                    // flag.remove();
+                } else if (flag.secondaryColor === COLOR_CYAN) {
+                    if (phase >= 3) {
+                        flag.remove();
+                    }
+                }
             }
         }
     }

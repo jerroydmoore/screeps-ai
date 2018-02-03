@@ -5,7 +5,6 @@ const EXIT_NAME = {
     [FIND_EXIT_RIGHT]: 'FIND_EXIT_RIGHT'
 };
 
-let _fallenResource = {};
 let _lowHealthStructs = {};
 let _unhealthyWallsAndRamparts = {};
 
@@ -15,7 +14,6 @@ module.exports = {
 
     gc(force) {
         if (force || Game.time % 25 === 0) {
-            _fallenResource = {};
             _lowHealthStructs = {};
             _unhealthyWallsAndRamparts = {};
         }
@@ -46,7 +44,7 @@ module.exports = {
         data.lastChecked = Game.time;
         // TODO determine if it's neutral. Say/Mark it on the world map.
         // creep.signController(controller, text)
-        console.log(JSON.stringify(data));
+        // console.log(JSON.stringify(data));
         return data;
     },
 
@@ -107,20 +105,6 @@ module.exports = {
         return _unhealthyWallsAndRamparts[roomName].pop();
     },
 
-    findFallenResource(roomName, mininumEnergy=25) {
-        let room = Game.rooms[roomName];
-        if ( !room) return;
-
-        if ( !_fallenResource[roomName]) {
-            _fallenResource[roomName] = room.find(FIND_DROPPED_RESOURCES, {
-                filter: s => s.resourceType === RESOURCE_ENERGY && s.projectedEnergy > mininumEnergy
-            });
-        }
-        
-        if (_fallenResource[roomName]) {
-            return _fallenResource[roomName].pop();
-        }
-    },
     determineRoomName: function(roomName, exitDir) {
         let pre1 = roomName[0],
             leftright = parseInt(roomName[1]),
@@ -179,15 +163,6 @@ module.exports = {
                 } else if (child === false) {
                     // an exit in this direction does not exist
                 } else {
-                    // let scout;
-                    // if (Memory.room && Memory.rooms[child] && Memory.rooms[child].scoutId) {
-                    //     console.log('found room already claimed by ' + Memory.rooms[child].scoutId)
-                    //     scout = Game.getObjectById(Memory.rooms[child].scoutId);
-                    // }
-                    // if (scout) {
-                    //     console.log(`Verified that room ${child} was already claimed by ${scout}`)
-                    // } else {
-                        
                     // value is a roomName, and we've been here before.
                     //console.log(`examining ${EXIT_NAME[exitDir]}(${exitDir}) ` + JSON.stringify(thisSegment))
                     // console.log(`bfs puth onto queue! ${EXIT_NAME[exitDir]}(${exitDir}) ` + JSON.stringify(thisSegment))

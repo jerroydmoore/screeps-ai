@@ -26,13 +26,11 @@ class StructExtensions extends StructBase {
         });
     }
     * getBuildingPointsOfInterests (room) {
-        let res = room.find(FIND_MY_STRUCTURES, {
-            filter: { structureType: STRUCTURE_STORAGE }
-        });
-        if (res.length > 0) {
-            yield res[0];
-        }
-        yield* super.getBuildingPointsOfInterests(room);
+        yield* super.getBuildingPointsOfInterests(room, this.sortPoiMethod);
+    }
+
+    sortPoiMethod(a, b) {
+        return b.rangeFromController - a.rangeFromController;
     }
 }
 module.exports = new StructExtensions();

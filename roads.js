@@ -1,4 +1,3 @@
-const Errors = require('errors');
 const BuildOrders = require('build-orders');
 
 function pruneBallots(ballots, expiration) {
@@ -77,7 +76,7 @@ const Road = {
             let pos = dest.pos || dest;
             
             let res = PathFinder.search(targetPos, {pos, range: 1}, {
-                maxRooms: 1,
+                // maxRooms: 1,
                 swampCost: 4,
                 plainCost: 2,
                 roomCallback: (roomName) => {

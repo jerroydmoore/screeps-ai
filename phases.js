@@ -4,7 +4,6 @@ let Phases = [
         // Intro level.
         Level: 1,
         checkLevelPeriod: 1001,
-        SpawnScoutAfterSkippedPeriods: -1,
         SpawnPeriod: 25,
         checkGoal: (room) => {
 
@@ -23,7 +22,7 @@ let Phases = [
                     desiredContainerCount--;
                 }
 
-                console.log(`container: ${desiredContainerCount}. ext: ${desiredExtensionCount}`);
+                // console.log(`container: ${desiredContainerCount}. ext: ${desiredExtensionCount}`);
                 if (desiredContainerCount <= 0 && desiredExtensionCount <= 0) {
                     return true;
                 }
@@ -31,21 +30,19 @@ let Phases = [
             return false;
         },
         Harvester: {
+            minimumEnergyToSpawn: 250,
             count: 2,
             parts: [WORK,CARRY,MOVE] // 250
         },
         Upgrader: {
             count: 4,
+            minimumEnergyToSpawn: 250,
             parts: [WORK,CARRY,MOVE] // 250
         },
         Builder: {
             count: 4,
+            minimumEnergyToSpawn: 250,
             parts: [WORK,CARRY,MOVE] // 250
-        },
-        Scout: {
-            count: 0,
-            parts: [ ]
-
         },
         Settler: {
             count: 0,
@@ -63,7 +60,6 @@ let Phases = [
         // Extensions and containers built.
         Level: 2,
         checkLevelPeriod: 1001,
-        SpawnScoutAfterSkippedPeriods: 10,
         SpawnPeriod: 50,
         checkGoal: (room) => {
             
@@ -80,23 +76,22 @@ let Phases = [
         },
         Harvester: {
             count: 1,
+            minimumEnergyToSpawn: 250,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Upgrader: {
             count: 3,
+            minimumEnergyToSpawn: 250,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Builder: {
             count: 2,
+            minimumEnergyToSpawn: 250,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
-        Scout: {
-            count: 256,
-            // scouts are expected to not go on roads
-            parts: [TOUGH, MOVE, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK ]
-        },
         Settler: {
-            count: 1,
+            shardwide: true,
+            count: 0,
             parts: [MOVE, MOVE, CLAIM]
         },
         RemoteHarvester: {
@@ -105,46 +100,52 @@ let Phases = [
         },
         Miner: {
             count: LOOK_SOURCES,
-            minimumEnergyToSpawn: 700,
-            parts: [ WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE ] // 700
+            minimumEnergyToSpawn: 250,
+            // minimumEnergyToSpawn: 700,
+            parts: [ MOVE, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE ] // 700
         },
     }, {
         // Build defenses
         Level: 3,
         RampartDesiredHealth: 30*1000,
         checkLevelPeriod: 1001,
-        SpawnScoutAfterSkippedPeriods: 10,
         SpawnPeriod: 50,
         checkGoal: () => false,
         Harvester: {
-            count: 2,
+            count: 1,
+            minimumEnergyToSpawn: 250,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,CARRY,MOVE,CARRY,CARRY]
         },
         Upgrader: {
             count: 2,
+            minimumEnergyToSpawn: 250,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
         Builder: {
             count: 3,
+            minimumEnergyToSpawn: 250,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
-        Scout: {
-            count: 256,
-            // scouts are expected to not go on roads
-            parts: [TOUGH, MOVE, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE, ATTACK ]
-        },
         Settler: {
-            count: 1,
-            parts: [MOVE, MOVE, CLAIM]
+            shardwide: true,
+            count: 0,
+            minimumEnergyToSpawn: 2100,
+            // total energy of parts: 2100
+            // carryCapacity: 850
+            parts: [WORK,CARRY,MOVE,MOVE, MOVE,CLAIM, MOVE,MOVE,CARRY,CARRY, MOVE,MOVE,CARRY,CARRY, MOVE,MOVE,CARRY,CARRY, MOVE,MOVE,CARRY,CARRY, MOVE,MOVE,CARRY,CARRY, MOVE,MOVE,CARRY,CARRY, MOVE,MOVE,CARRY,CARRY, MOVE,MOVE,CARRY,CARRY]
         },
         RemoteHarvester: {
             count: 0,
             parts: [WORK,CARRY,MOVE,MOVE,CARRY,WORK,MOVE,WORK,CARRY]
         },
+        RemoteBuilder: {
+            minimumEnergyToSpawn: 1000,
+            parts: [WORK,CARRY,MOVE, MOVE,CARRY,CARRY, MOVE,CARRY,CARRY, MOVE,WORK,WORK] //1*250=1,000
+        },
         Miner: {
             count: LOOK_SOURCES,
             minimumEnergyToSpawn: 700,
-            parts: [ WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE ] // 700
+            parts: [ WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE ] // 700
         },
     }
 ];
@@ -160,9 +161,7 @@ Phases.getCurrentPhaseInfo = function (room) {
     return Phases[number];
 };
 Phases.getCurrentPhaseNumber = function(room) {
-    let roomName = room.name || room,
-        phaseNo = Memory.rooms[roomName].phase; 
-    return phaseNo || 1;
+    return room.memory.phase || 1;
 };
 Phases.determineCurrentPhaseNumber = function (room) {
     let roomName = room.name || room,
@@ -173,11 +172,12 @@ Phases.determineCurrentPhaseNumber = function (room) {
 
     // We don't need to check on every tick
     if (Game.time % period === 0 && checkGoal(room)) {
-        Memory.rooms[roomName].phase++;
+        room.memory.phase++;
         console.log(`Updated ${room} phase to ${Memory.rooms[roomName].phase}`);
     }
     // TODO: Rooms that don't have a controller?
-    return Memory.rooms[roomName].phase || 1;
+    room.memory.phase = room.memory.phase || 1;
+    return room.memory.phase;
 };
 
 module.exports = Phases;
