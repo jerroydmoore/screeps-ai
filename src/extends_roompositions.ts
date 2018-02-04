@@ -1,13 +1,13 @@
 // https://github.com/ScreepsQuorum/screeps-quorum
-RoomPosition.prototype.serialize = function () {
+RoomPosition.prototype.serialize = function() {
     return Room.serializeName(this.roomName) + String.fromCharCode(((this.x * 100) + +this.y) + 200);
 };
-RoomPosition.serialize = function (pos) {
+RoomPosition.serialize = function(pos: RoomPosition) {
     return pos.serialize();
 };
 
 // https://github.com/ScreepsQuorum/screeps-quorum
-RoomPosition.deserialize = function (string) {
+RoomPosition.deserialize = function(string: string) {
     const roomname = Room.deserializeName(string.slice(0, -1));
     const coordraw = (string.charCodeAt(string.length - 1) - 200);
     const x = Math.floor(coordraw / 100);
@@ -15,6 +15,6 @@ RoomPosition.deserialize = function (string) {
     return new RoomPosition(x, y, roomname);
 };
 
-RoomPosition.prototype.equals = function (pos) {
+RoomPosition.prototype.equals = function(pos: RoomPosition) {
     return this.x == pos.x && this.y == pos.y && this.roomName == pos.roomName;
 };
