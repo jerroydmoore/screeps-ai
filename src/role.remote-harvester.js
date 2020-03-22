@@ -1,4 +1,4 @@
-const CreepsBase = require('creeps');
+const CreepsBase = require('./creeps');
 
 class RemoteHarvester extends CreepsBase {
   constructor() {

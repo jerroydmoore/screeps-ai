@@ -1,6 +1,6 @@
-const utils = require('utils');
-const BuildOrders = require('build-orders');
-const RoomLayout = require('room-layout');
+const utils = require('./utils');
+const BuildOrders = require('./build-orders');
+const RoomLayout = require('./room-layout');
 
 const protectionList = [STRUCTURE_SPAWN, STRUCTURE_STORAGE, STRUCTURE_TOWER];
 const protectionFilter = (s) => protectionList.includes(s.structureType);

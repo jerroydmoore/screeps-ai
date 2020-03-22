@@ -1,4 +1,4 @@
-const BuildOrders = require('build-orders');
+const BuildOrders = require('./build-orders');
 
 function pruneBallots(ballots, expiration) {
   return ballots.filter((t) => t + expiration > Game.time);

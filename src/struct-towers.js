@@ -1,11 +1,11 @@
-const StructBase = require('struct-base');
-const Errors = require('errors');
-const utils = require('utils');
+const StructBase = require('./struct-base');
+const Errors = require('./errors');
+const utils = require('./utils');
 const AVOID_LIST = utils.AVOID_LIST;
-const RoomsUtils = require('rooms');
-const Phases = require('phases');
-const Cache = require('cache');
-const Utils = require('utils');
+const RoomsUtils = require('./rooms');
+const Phases = require('./phases');
+const Cache = require('./cache');
+const Utils = require('./utils');
 const AvoidStructure = Utils.AvoidStructure;
 
 Utils.addMemoryProperty(StructureTower.prototype, 'towers');

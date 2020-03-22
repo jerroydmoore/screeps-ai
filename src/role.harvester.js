@@ -1,4 +1,4 @@
-const CreepsBase = require('creeps');
+const CreepsBase = require('./creeps');
 
 const LOW_STRUCT_THRESHOLD = 0.9;
 const role = 'Harvester';

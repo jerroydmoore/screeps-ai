@@ -1,6 +1,6 @@
-const roleBuilder = require('role.builder');
-const Roads = require('roads');
-const AbstractRemoteCreep = require('abstract-remote-creep');
+const roleBuilder = require('./role.builder');
+const Roads = require('./roads');
+const AbstractRemoteCreep = require('./abstract-remote-creep');
 
 const FLAG_TTL = 99;
 class RemoteBuilder extends AbstractRemoteCreep {

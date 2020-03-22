@@ -1,7 +1,7 @@
-const Constants = require('constants');
-const Roads = require('roads');
-const BuildOrders = require('build-orders');
-const utils = require('utils');
+const Constants = require('./constants');
+const Roads = require('./roads');
+const BuildOrders = require('./build-orders');
+const utils = require('./utils');
 
 class Struct {
   constructor(structureType, opts = {}) {

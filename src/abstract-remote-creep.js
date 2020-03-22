@@ -1,4 +1,4 @@
-const CreepsBase = require('creeps');
+const CreepsBase = require('./creeps');
 
 class AbstractRemoteCreep extends CreepsBase {
   constructor(roleName, flagColor, flagSecondColor, ttlFieldName, flagClaimGracePeriod, creepIdFieldName) {

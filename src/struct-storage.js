@@ -1,8 +1,8 @@
-const StructBase = require('struct-base');
-const utils = require('utils');
+const StructBase = require('./struct-base');
+const utils = require('./utils');
 const AvoidStructure = utils.AvoidStructure;
 const AVOID_LIST = utils.AVOID_LIST;
-const Cache = require('cache');
+const Cache = require('./cache');
 
 Cache.addEnergyProperties(StructureStorage.prototype);
 

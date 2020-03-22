@@ -1,4 +1,4 @@
-const RoomUtils = require('rooms');
+const RoomUtils = require('./rooms');
 
 module.exports = function (phaseNumber) {
   let logger = console.log;

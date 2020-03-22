@@ -1,6 +1,6 @@
-const Errors = require('errors');
-const roleHarvester = require('role.harvester');
-const CreepsBase = require('creeps');
+const Errors = require('./errors');
+const roleHarvester = require('./role.harvester');
+const CreepsBase = require('./creeps');
 
 class RoleUpgrader extends CreepsBase {
   constructor() {

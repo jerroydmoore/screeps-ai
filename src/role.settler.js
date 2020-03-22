@@ -1,5 +1,5 @@
-const Errors = require('errors');
-const AbstractRemoteCreep = require('abstract-remote-creep');
+const Errors = require('./errors');
+const AbstractRemoteCreep = require('./abstract-remote-creep');
 
 const FLAG_TTL = 205;
 class RoleSettler extends AbstractRemoteCreep {

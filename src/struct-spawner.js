@@ -1,15 +1,15 @@
-const StructBase = require('struct-base');
-const utils = require('utils');
+const StructBase = require('./struct-base');
+const utils = require('./utils');
 const AVOID_LIST = utils.AVOID_LIST;
-const roleMiner = require('role.miner');
-const roleHarvester = require('role.harvester');
-const roleUpgrader = require('role.upgrader');
-const roleBuilder = require('role.builder');
-const roleRemoteBuilder = require('role.remote-builder');
-const roleSettler = require('role.settler');
-const Phases = require('phases');
-const Roads = require('roads');
-const Cache = require('cache');
+const roleMiner = require('./role.miner');
+const roleHarvester = require('./role.harvester');
+const roleUpgrader = require('./role.upgrader');
+const roleBuilder = require('./role.builder');
+const roleRemoteBuilder = require('./role.remote-builder');
+const roleSettler = require('./role.settler');
+const Phases = require('./phases');
+const Roads = require('./roads');
+const Cache = require('./cache');
 
 Cache.addEnergyProperties(StructureSpawn.prototype);
 

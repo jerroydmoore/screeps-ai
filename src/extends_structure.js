@@ -1,4 +1,4 @@
-const utils = require('utils');
+const utils = require('./utils');
 
 if (!Structure.prototype.isRampart) {
   Structure.prototype.isRampart = function () {

@@ -1,5 +1,5 @@
-const CreepsBase = require('creeps');
-const Errors = require('errors');
+const CreepsBase = require('./creeps');
+const Errors = require('./errors');
 
 class RoleMiners extends CreepsBase {
   constructor(role = 'Miner') {

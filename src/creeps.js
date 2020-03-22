@@ -1,7 +1,7 @@
-const Errors = require('errors');
-const RoomUtils = require('rooms');
-const Roads = require('roads');
-const Phases = require('phases');
+const Errors = require('./errors');
+const RoomUtils = require('./rooms');
+const Roads = require('./roads');
+const Phases = require('./phases');
 
 class CreepsBase {
   constructor(role) {

@@ -1,6 +1,6 @@
-const roleHarvester = require('role.harvester');
-const CreepsBase = require('creeps');
-const RoomsUtils = require('rooms');
+const roleHarvester = require('./role.harvester');
+const CreepsBase = require('./creeps');
+const RoomsUtils = require('./rooms');
 
 class RoleBuilder extends CreepsBase {
   constructor(role = 'Builder') {

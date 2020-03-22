@@ -1,4 +1,4 @@
-const Errors = require('errors');
+const Errors = require('./errors');
 
 // orderStructures from https://github.com/ScreepsQuorum/screeps-quorum
 const orderStructures = [
