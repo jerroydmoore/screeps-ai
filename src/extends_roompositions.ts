@@ -7,14 +7,14 @@ RoomPosition.serialize = function(pos: RoomPosition) {
 };
 
 // https://github.com/ScreepsQuorum/screeps-quorum
-RoomPosition.deserialize = function(string: string) {
-    const roomname = Room.deserializeName(string.slice(0, -1));
-    const coordraw = (string.charCodeAt(string.length - 1) - 200);
+RoomPosition.deserialize = function(str: string) {
+    const roomname = Room.deserializeName(str.slice(0, -1));
+    const coordraw = (str.charCodeAt(str.length - 1) - 200);
     const x = Math.floor(coordraw / 100);
     const y = coordraw % 50;
     return new RoomPosition(x, y, roomname);
 };
 
 RoomPosition.prototype.equals = function(pos: RoomPosition) {
-    return this.x == pos.x && this.y == pos.y && this.roomName == pos.roomName;
+    return this.x === pos.x && this.y === pos.y && this.roomName === pos.roomName;
 };

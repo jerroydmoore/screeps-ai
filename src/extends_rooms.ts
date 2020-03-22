@@ -1,13 +1,12 @@
-interface RoomCoordinate {
+interface IRoomCoordinate {
     x: number;
     y: number;
     x_dir: string;
     y_dir: string;
 }
+// tslint:disable-next-line: interface-name
 interface RoomConstructor {
-    serializeName(name: string): string;
-    deserializeName(name: string): string;
-    getCoordinates(name: string): RoomCoordinate;
+    getCoordinates(name: string): IRoomCoordinate;
 }
 
 // https://github.com/ScreepsQuorum/screeps-quorum
@@ -57,7 +56,7 @@ Room.deserializeName = function(sName: string): string {
     return `${xDir}${x}${yDir}${y}`;
 };
 
-Room.getCoordinates = function(name: string): RoomCoordinate {
+Room.getCoordinates = function(name: string): IRoomCoordinate {
     const coordinateRegex = /(E|W)(\d+)(N|S)(\d+)/g;
     const match = coordinateRegex.exec(name);
     return {
