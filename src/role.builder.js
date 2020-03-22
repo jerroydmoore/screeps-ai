@@ -50,8 +50,10 @@ class RoleBuilder extends CreepsBase {
     }
   }
 
-  run(creep, skipRepair = false) {
-    if (!super.run(creep)) return;
+  run(creep, { hasTowers }) {
+    if (creep.busy || !this.is(creep)) return false;
+
+    const skipRepair = hasTowers[creep.room.name];
 
     if (creep.memory.full) {
       this.fortify(creep);
@@ -63,7 +65,8 @@ class RoleBuilder extends CreepsBase {
       if (!creep.busy) {
         this.build(creep);
       }
-    } else {
+    }
+    if (!creep.memory.full | !creep.busy) {
       roleHarvester.harvest(creep);
     }
   }

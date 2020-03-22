@@ -3,12 +3,7 @@ require('extends_rooms');
 require('extends_structure');
 require('extends_construction-site');
 
-const roleMiner = require('role.miner');
-const roleHarvester = require('role.harvester');
-const roleUpgrader = require('role.upgrader');
-const roleBuilder = require('role.builder');
-const roleRemoteBuilder = require('role.remote-builder');
-const roleSettler = require('role.settler');
+const CreepManager = require('creep-manager');
 const Spawner = require('struct-spawner');
 const Phases = require('phases');
 const Roads = require('roads');
@@ -88,38 +83,8 @@ module.exports.loop = function () {
     }
   }
 
-  for (let name in Game.creeps) {
-    let creep = Game.creeps[name];
+  CreepManager.runAll(Game.creeps, { hasTowers });
 
-    if (creep.spawning) continue;
-
-    if (roleMiner.is(creep)) {
-      roleMiner.run(creep);
-      continue;
-    }
-    if (roleSettler.is(creep)) {
-      roleSettler.run(creep);
-      continue;
-    }
-    if (roleRemoteBuilder.is(creep)) {
-      roleRemoteBuilder.run(creep);
-      continue;
-    }
-
-    if (!creep.busy && roleBuilder.is(creep)) {
-      roleBuilder.run(creep, hasTowers[creep.room.name]);
-      if (!creep.busy) roleHarvester.run(creep);
-    }
-
-    if (!creep.busy && roleHarvester.is(creep)) {
-      roleHarvester.run(creep);
-    }
-
-    if (!creep.busy) {
-      // Upgrader, also the catch-all
-      roleUpgrader.run(creep);
-    }
-  }
   utils.gc(); // garbage collect the recently deseased creep
   Roads.gc();
   Towers.gc();

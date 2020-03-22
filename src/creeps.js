@@ -315,36 +315,7 @@ class CreepsBase {
     return Math.ceil(cost / 2.5 / body_size);
   }
 
-  run(creep) {
-    if (creep.ticksToLive === 1) {
-      creep.say('☠️ dying');
-      // console.log(`${creep} ${creep.pos} died naturally.`);
-      for (const resourceType in creep.carry) {
-        creep.drop(resourceType);
-      }
-      // TODO Inform a Spawner to replace the creep.
-      delete Memory.creeps[creep.name];
-      return false;
-    }
-
-    if (!creep.memory.origin) {
-      creep.memory.origin = creep.room.name;
-    }
-
-    if (creep.memory.full && creep.carry.energy == 0) {
-      delete creep.memory.full;
-      delete creep.memory.rechargeId;
-      delete creep.memory.noRoads;
-      delete creep.memory.repairPos;
-      // this.checkRenewOrRecycle(creep);
-    }
-    // this.tryRenewOrRecycle(creep);
-
-    if (!creep.memory.full && creep.carry.energy == creep.carryCapacity) {
-      delete creep.memory.sId;
-      delete creep.memory.repairId;
-      creep.memory.full = 1;
-    }
+  run() {
     return true;
   }
 

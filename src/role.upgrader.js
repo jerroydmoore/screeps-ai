@@ -8,7 +8,7 @@ class RoleUpgrader extends CreepsBase {
   }
 
   run(creep) {
-    if (!super.run(creep)) return;
+    if (creep.busy) return false;
 
     if (creep.memory.full) {
       let controller = creep.room.controller;

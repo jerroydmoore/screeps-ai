@@ -33,7 +33,7 @@ class RemoteHarvester extends CreepsBase {
   }
 
   run(creep) {
-    if (!super.run(creep)) return;
+    if (creep.busy || !this.is(creep)) return false;
 
     if (!creep.memory.full) {
       this.harvest(creep);

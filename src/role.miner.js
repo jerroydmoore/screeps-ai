@@ -8,7 +8,7 @@ class RoleMiners extends CreepsBase {
 
   run(creep) {
     try {
-      if (!super.run(creep)) return;
+      if (!this.is(creep)) return false;
 
       // Behavior: Find a free Source, go the Container next to it
       // Sit on the Container and mine the Source, until death.
