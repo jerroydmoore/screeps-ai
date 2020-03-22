@@ -94,7 +94,9 @@ module.exports.loop = function () {
     if (creep.spawning) continue;
 
     // all preruns are the same.
-    roleHarvester.preRun(creep);
+    if (!roleHarvester.preRun(creep)) {
+      continue;
+    }
 
     if (roleMiner.is(creep)) {
       roleMiner.run(creep);
@@ -121,16 +123,6 @@ module.exports.loop = function () {
     if (!creep.busy) {
       // Upgrader, also the catch-all
       roleUpgrader.run(creep);
-    }
-
-    if (creep.ticksToLive === 1) {
-      creep.say('☠️ dying');
-      // console.log(`${creep} ${creep.pos} died naturally.`);
-      for (const resourceType in creep.carry) {
-        creep.drop(resourceType);
-      }
-      // TODO Inform a Spawner to replace the creep.
-      delete Memory.creeps[creep.name];
     }
   }
   utils.gc(); // garbage collect the recently deseased creep

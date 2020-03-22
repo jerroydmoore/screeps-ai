@@ -316,6 +316,17 @@ class CreepsBase {
   }
 
   preRun(creep) {
+    if (creep.ticksToLive === 1) {
+      creep.say('☠️ dying');
+      // console.log(`${creep} ${creep.pos} died naturally.`);
+      for (const resourceType in creep.carry) {
+        creep.drop(resourceType);
+      }
+      // TODO Inform a Spawner to replace the creep.
+      delete Memory.creeps[creep.name];
+      return false;
+    }
+
     if (!creep.memory.origin) {
       creep.memory.origin = creep.room.name;
     }
@@ -334,6 +345,7 @@ class CreepsBase {
       delete creep.memory.repairId;
       creep.memory.full = 1;
     }
+    return true;
   }
 
   run(creep) {
