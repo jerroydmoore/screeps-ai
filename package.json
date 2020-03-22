@@ -2,25 +2,31 @@
   "name": "screeps-ai",
   "version": "1.0.0",
   "description": "A screeps ai",
-  "main": "./src/main.js",
-  "scripts": {
-    "lint": "eslint --fix .",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/jerroydmoore/screeps-ai.git"
-  },
+  "license": "MIT",
   "keywords": [
     "screeps",
     "game-ai"
   ],
   "author": "Jerroyd Moore",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/jerroydmoore/screeps-ai/issues"
   },
   "homepage": "https://github.com/jerroydmoore/screeps-ai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jerroydmoore/screeps-ai.git"
+  },
+  "type": "commonjs",
+  "engines": {
+    "node": ">=10.19.0"
+  },
+  "main": "./src/main.js",
+  "scripts": {
+    "lint": "grunt tslint",
+    "compile": "grunt tsc",
+    "deploy": "grunt deploy:local",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "devDependencies": {
     "chai": "^4.1.2",
     "eslint": "^4.18.2",
@@ -29,5 +35,15 @@
     "mocha": "^4.0.1",
     "mocha-eslint": "^4.1.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@types/lodash": "^3.10.1",
+    "@types/screeps": "^2.2.0",
+    "grunt": "^1.0.1",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-ts": "^6.0.0-beta.17",
+    "grunt-tslint": "^5.0.1",
+    "node-fs-extra": "^0.8.2",
+    "tslint": "^5.9.1",
+    "typescript": "^2.7.1"
+  }
 }
