@@ -60,53 +60,57 @@ class CacheMap extends Map {
     }
 
     for (let name in Game.creeps) {
-      let creep = Game.creeps[name],
-        id = creep.memory.rechargeId;
+      try {
+        let creep = Game.creeps[name],
+          id = creep.memory.rechargeId;
 
-      /**
-       * Extensions/Spawns/Towers S. with Energy E. E' = E.
-       * Iterate through Creeps C, if C.rechargeId = S.id, E' += C.capacity;
-       * Upon new Creep.transfer requests, check E' >= S.capacity, if true, op succeeds, E' += C.capacity;
-       * Re-generate at beginning of next ticks.
-       */
-      if (id) {
-        let target = Game.getObjectById(id);
-
-        if (!target) {
-          delete creep.memory.rechargeId;
-          continue;
-        }
-
-        let cache = this.get(id),
-          energy = cache.getValue('projectedEnergy') || target.energy;
-
-        cache.setValue('projectedEnergy', energy + creep.carryCapacity, { ttl: 1 });
-      }
-
-      /**
-       * Container/Storage/Resource/Source S. with Energy E. E' = E.
-       * Iterate through Creeps C, if C.sId = S.id, E' -= C.capacity;
-       * Upon new Creep.withdraw/harvest requests, check C.capacity > E'. If true, op succeeds, E' -= C.capacity;
-       * Dispose at the end of the tick. (Re-generate at the beginning of ticks)
-       */
-      id = creep.memory.sId;
-      if (id) {
-        let target = Game.getObjectById(id),
-          cache = this.get(id),
-          energy = cache.getValue('projectedEnergy') || target.energy;
-        cache.setValue('projectedEnergy', energy - creep.carryCapacity, { ttl: 1 });
-      }
-      id = creep.memory.fallenResourceId;
-      if (id) {
-        let cache = this.get(id),
-          energy = cache.getValue('projectedEnergy') || 0;
-        try {
+        /**
+         * Extensions/Spawns/Towers S. with Energy E. E' = E.
+         * Iterate through Creeps C, if C.rechargeId = S.id, E' += C.capacity;
+         * Upon new Creep.transfer requests, check E' >= S.capacity, if true, op succeeds, E' += C.capacity;
+         * Re-generate at beginning of next ticks.
+         */
+        if (id) {
           let target = Game.getObjectById(id);
-          energy = cache.hasValue('projectedEnergy') ? energy : target.amount;
-        } catch (e) {
-          // ignore Game.getObjectById exceptions
+
+          if (!target) {
+            delete creep.memory.rechargeId;
+            continue;
+          }
+
+          let cache = this.get(id),
+            energy = cache.getValue('projectedEnergy') || target.energy;
+
+          cache.setValue('projectedEnergy', energy + creep.carryCapacity, { ttl: 1 });
         }
-        cache.setValue('projectedEnergy', energy - creep.carryCapacity, { ttl: 1 });
+
+        /**
+         * Container/Storage/Resource/Source S. with Energy E. E' = E.
+         * Iterate through Creeps C, if C.sId = S.id, E' -= C.capacity;
+         * Upon new Creep.withdraw/harvest requests, check C.capacity > E'. If true, op succeeds, E' -= C.capacity;
+         * Dispose at the end of the tick. (Re-generate at the beginning of ticks)
+         */
+        id = creep.memory.sId;
+        if (id) {
+          let target = Game.getObjectById(id),
+            cache = this.get(id),
+            energy = cache.getValue('projectedEnergy') || target.energy;
+          cache.setValue('projectedEnergy', energy - creep.carryCapacity, { ttl: 1 });
+        }
+        id = creep.memory.fallenResourceId;
+        if (id) {
+          let cache = this.get(id),
+            energy = cache.getValue('projectedEnergy') || 0;
+          try {
+            let target = Game.getObjectById(id);
+            energy = cache.hasValue('projectedEnergy') ? energy : target.amount;
+          } catch (e) {
+            // ignore Game.getObjectById exceptions
+          }
+          cache.setValue('projectedEnergy', energy - creep.carryCapacity, { ttl: 1 });
+        }
+      } catch (err) {
+        console.log(`ERR calculateProjectedEnergy for creep ${name}: ${err}`);
       }
     }
   }
