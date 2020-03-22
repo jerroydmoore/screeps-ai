@@ -32,24 +32,21 @@ errorEmoji[-13] = 'ERR_NOT_ENOUGH_EXTENSIONS';
 errorEmoji[-14] = 'ERR_RCL_NOT_ENOUGH';
 errorEmoji[-15] = 'ERR_GCL_NOT_ENOUGH';
 
-
-
-
 exports.errorCode = errorCode;
 exports.errorEmoji = errorEmoji;
 exports.check = (obj, action, code) => {
-    if (code !== OK) {
-        let errMsg = errorCode[code] || 'UNKNOWN';
-        if (obj.say) {
-            let msg = errorEmoji[code];
-            if (code === ERR_TIRED && obj.fatigue) msg += ' ' + obj.fatigue;
-            obj.say(msg);
-        }
-        if (code !== ERR_TIRED) {
-            let pos = obj.pos || '';
-            console.log(`${obj} ${pos} could not perform ${action}: ${errMsg}`);
-        }
-        return true;
+  if (code !== OK) {
+    let errMsg = errorCode[code] || 'UNKNOWN';
+    if (obj.say) {
+      let msg = errorEmoji[code];
+      if (code === ERR_TIRED && obj.fatigue) msg += ' ' + obj.fatigue;
+      obj.say(msg);
     }
-    return false;
+    if (code !== ERR_TIRED) {
+      let pos = obj.pos || '';
+      console.log(`${obj} ${pos} could not perform ${action}: ${errMsg}`);
+    }
+    return true;
+  }
+  return false;
 };
