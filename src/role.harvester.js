@@ -8,6 +8,8 @@ class RoleHarvester extends CreepsBase {
   }
 
   run(creep) {
+    if (!super.run(creep)) return;
+
     if (!creep.memory.full) {
       this.harvest(creep, { ignore: creep.memory.ignore });
     } else {

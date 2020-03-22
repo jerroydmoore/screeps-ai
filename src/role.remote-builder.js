@@ -8,6 +8,8 @@ class RemoteBuilder extends AbstractRemoteCreep {
     super(role, COLOR_BLUE, COLOR_BLUE, 'ttlBuilder', FLAG_TTL);
   }
   run(creep) {
+    if (!super.run(creep)) return;
+
     // If in originRoom, go to next room, then
     // build everything in the room.
     // when nothing is buildable, go to next room and repeat

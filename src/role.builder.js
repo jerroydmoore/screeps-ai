@@ -51,6 +51,8 @@ class RoleBuilder extends CreepsBase {
   }
 
   run(creep, skipRepair = false) {
+    if (!super.run(creep)) return;
+
     if (creep.memory.full) {
       this.fortify(creep);
 

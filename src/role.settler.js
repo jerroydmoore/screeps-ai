@@ -7,6 +7,8 @@ class RoleSettler extends AbstractRemoteCreep {
     super(roleName, COLOR_BLUE, COLOR_BLUE, 'ttlSettler', FLAG_TTL, 'settleId');
   }
   run(creep) {
+    if (!super.run(creep)) return;
+
     // If not in targetRoom, go to next room
     // If in targetRoom, claim Upgrader
     // Repeat

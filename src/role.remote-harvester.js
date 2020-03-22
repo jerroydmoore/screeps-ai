@@ -1,10 +1,11 @@
-module.exports = {
-  roleName: 'Harvester',
+const CreepsBase = require('creeps');
 
-  is: function (creep) {
-    return creep.name.startsWith(module.exports.roleName);
-  },
-  harvest: function (creep) {
+class RemoteHarvester extends CreepsBase {
+  constructor() {
+    super('Harvester');
+  }
+
+  harvest(creep) {
     let sourceId = creep.memory.sId,
       source = undefined;
     if (sourceId) {
@@ -29,16 +30,19 @@ module.exports = {
       creep.say('😰 No Srcs');
     }
     creep.busy = 1;
-  },
+  }
 
-  run: function (creep) {
+  run(creep) {
+    if (!super.run(creep)) return;
+
     if (!creep.memory.full) {
       this.harvest(creep);
     } else {
       this.recharge(creep);
     }
-  },
-  recharge: function (creep) {
+  }
+
+  recharge(creep) {
     let structure;
     if (creep.memory.rechargeId) {
       structure = Game.getObjectById(creep.memory.rechargeId);
@@ -72,5 +76,7 @@ module.exports = {
         this.travelTo(creep, structure, '#00FF3C'); // green
       }
     }
-  },
-};
+  }
+}
+
+module.exports = new RemoteHarvester();

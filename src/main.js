@@ -93,11 +93,6 @@ module.exports.loop = function () {
 
     if (creep.spawning) continue;
 
-    // all preruns are the same.
-    if (!roleHarvester.preRun(creep)) {
-      continue;
-    }
-
     if (roleMiner.is(creep)) {
       roleMiner.run(creep);
       continue;

@@ -315,7 +315,7 @@ class CreepsBase {
     return Math.ceil(cost / 2.5 / body_size);
   }
 
-  preRun(creep) {
+  run(creep) {
     if (creep.ticksToLive === 1) {
       creep.say('☠️ dying');
       // console.log(`${creep} ${creep.pos} died naturally.`);
@@ -346,10 +346,6 @@ class CreepsBase {
       creep.memory.full = 1;
     }
     return true;
-  }
-
-  run(creep) {
-    console.log(creep + ': ' + this.roleName + ' does not have a run action defined');
   }
 
   build(creep) {
