@@ -23,14 +23,16 @@
   "main": "./src/main.js",
   "scripts": {
     "lint": "eslint src/",
-    "compile": "grunt tsc",
-    "deploy": "grunt deploy:local",
+    "deploy:local": "grunt deploy:local",
+    "deploy:server": "grunt deploy:server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {},
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-plugin-screeps": "^2.0.0",
+    "grunt": "^1.1.0",
+    "grunt-contrib-copy": "^1.0.0",
     "husky": "^4.2.3",
     "lint-staged": "^10.0.8",
     "prettier": "^2.0.1"

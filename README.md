@@ -5,9 +5,28 @@ This AI will quickly upgrade the controller level to 2. At which point, it will 
 
 It also has limited capability to scout out other rooms, and can very soon claim another room.
 
+## Development
+If you're running Screeps on MacOS, Screep's deployment directories in `Gruntfile.js` is already set correctly. Otherwise, you'll have to update them before the deploy commands will work.
+
+```
+npm install
+npm run deploy:local
+```
+
+On MacOS, Screeps's deployment directories should be set to `/Users/$USER/Library/Application Support/Screeps/scripts/$SERVER/default` where `$SERVER` is either `screeps.com` or `127_0_0_1___21025` for localhost.
+
+### Useful Commands
+
+* `npm run lint` for linting
+* `npm run deploy:local` to copy `./src` into the localhost screeps instance.
+* `npm run deploy:server` to copy `./src` into the screeps.com's local cache directory on the file system
+
 ## AI Strategy
+
 The AI employs a number of strategies to achieve both room objectives and game objectives.
+
 ### Room Objective 1: Spawning in a New Room
+
 The following directives are set in order build an extensive Road network, build Extensions, and build Containers.
 
 1. Start spawning creeps to be self-sufficient.
@@ -17,6 +36,7 @@ The following directives are set in order build an extensive Road network, build
 5. Build Extensions.
 
 ### Room Objective 2: Establish Regular Colony Behavior
+
 The following directives are added in order to establish regular coloney behavior and build a Tower.
 
 1. Spawn Miners, that do nothing be harvest Sources and transfer energies to nearby Containers and Storage structures.
@@ -47,6 +67,7 @@ This game objective should be triggered when a room has two towers.
 2. Spawned Settlers will go two rooms away to reserve a room with two Sources and a Controller. Sending a defender and two harvesters along the way.
 
 ### Game Objective 2: Aggressive Expansion
+
 This game objective should be triggered when there are no more unexplored safe rooms.
 
 1. Build an army and send it to a room at the top of the desirable room queue that has an enemy.
