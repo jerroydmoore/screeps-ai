@@ -1,0 +1,22 @@
+{
+  "root": true,
+  "extends": [
+    "eslint:recommended"
+  ],
+  "plugins": ["screeps"],
+  "env": {
+    "es6": true,
+    "node": true,
+    "screeps/screeps": true
+  },
+  "rules": {
+    "eol-last": 2,
+    "indent": [ "warn", 2, { "SwitchCase": 1 } ],
+    "no-unused-expressions": 0,
+    "prefer-arrow-callback": [ "error", {
+      "allowNamedFunctions": true
+    } ],
+    "quotes": [ "error", "single" ],
+    "semi": [ "error", "always" ]
+  }
+}

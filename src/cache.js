@@ -112,7 +112,7 @@ class CacheMap extends Map {
         }
     }
     addEnergyProperties(prototype) {
-        if (! prototype.hasOwnProperty('energy')) {
+        if (! Object.prototype.hasOwnProperty.call(prototype, 'energy')) {
             Object.defineProperty(prototype, 'energy', {
                 get() {
                     if (this instanceof Resource) {
@@ -123,10 +123,11 @@ class CacheMap extends Map {
                     } else if (this instanceof StructureContainer || this instanceof StructureStorage) {
                         return this.store[RESOURCE_ENERGY];
                     }
+                    return undefined;
                 }
             });  
         }
-        if (! prototype.hasOwnProperty('energyCapacity')) {
+        if (! Object.prototype.hasOwnProperty.call(prototype, 'energyCapacity')) {
             Object.defineProperty(prototype, 'energyCapacity', {
                 get() {
                     if (this instanceof Resource) {
@@ -134,6 +135,7 @@ class CacheMap extends Map {
                     } else if (this instanceof StructureContainer || this instanceof StructureStorage) {
                         return this.storeCapacity;
                     }
+                    return undefined;
                 }
             });  
         }

@@ -1,5 +1,3 @@
-const Cache = require('cache');
-
 class AvoidStructure {
     constructor(structureType, opts={}) {
         this.structureType = structureType;
@@ -249,8 +247,8 @@ const utils = {
     },
     printMatrix: printMatrix,
     addMemoryProperty(prototype, memoryAttr) {
-        if(prototype.hasOwnProperty(memoryAttr)) {
-            return false;
+        if (Object.prototype.hasOwnProperty.call(prototype, memoryAttr)) {
+            return;
         }
         Object.defineProperty(prototype, 'memory', {
             get: function() {

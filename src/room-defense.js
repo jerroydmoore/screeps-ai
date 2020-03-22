@@ -82,6 +82,7 @@ class RoomDefense {
     barricadeRoomController(room) {
         this.buildPerimeter(room.controller, STRUCTURE_WALL);
     }
+    // eslint-disable-next-line no-unused-vars
     fortifyExits(room) {
         // let layout = this.getExitDefenseLayout(room);
 
@@ -216,7 +217,10 @@ class RoomDefense {
 const Y_SOUTH = 1;
 const Y_NORTH = -1;
 const X_WEST = -1;
+/* eslint-disable no-unused-vars */
+// getExitDefenseLayout is still WIP
 const X_EAST = 1;
 const Y = 'y', X = 'x';
+/* eslint-enable no-unused-vars */
 
 module.exports = new RoomDefense();

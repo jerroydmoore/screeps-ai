@@ -7,7 +7,7 @@ if(! Structure.prototype.isRampart) {
 }
 
 utils.addMemoryProperty(Source.prototype, 'sources');
-if (! Source.prototype.hasOwnProperty('rangeFromController')) {
+if (! Object.prototype.hasOwnProperty.call(Source.prototype, 'rangeFromController')) {
     Object.defineProperty(Source.prototype, 'rangeFromController', {
         get() {
             if(! this.room.controller) {
