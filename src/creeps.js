@@ -428,7 +428,7 @@ class CreepsBase {
         delete creep.memory.repairPos;
         // If remembered thing not found, find another thing to do
         // as to not waste this tick.
-        this.fortify(creep);
+        return this.fortify(creep);
       }
     }
 
