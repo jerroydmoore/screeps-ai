@@ -31,7 +31,7 @@
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-plugin-screeps": "^2.0.0",
-    "grunt": "^1.1.0",
+    "grunt": "^1.5.3",
     "grunt-contrib-copy": "^1.0.0",
     "husky": "^4.2.3",
     "lint-staged": "^10.0.8",
