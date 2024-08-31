@@ -60,7 +60,7 @@ module.exports.loop = function () {
 
     if (hasSpawner && Game.time % 100 === 3) {
       // console.log('Attempting to build');
-      // console.log('build orders: ' + Memory.con[room.name].length + ' ' + JSON.stringify(Memory.con[room.name].map(x => x.type)));
+      // console.log('build orders: ' + Memory.rooms[room.name].con.length + ' ' + JSON.stringify(Memory.rooms[room.name].con.map(x => x.type)));
 
       RoomDefense.buildInRoom(room);
       StructExtensions.buildInRoom(room);

@@ -50,7 +50,7 @@ const BuildOrders = {
     // schedule does not check if _pos is occupied.
     // caller should do this, before calling this method
 
-    const orders = Memory.con[room.name] || [];
+    const orders = Memory.rooms[room.name].con || [];
     const pos = _pos.serialize();
     const result = this.getScheduledAt(room, _pos);
 
@@ -73,13 +73,13 @@ const BuildOrders = {
     Memory.buildOrderCount = Memory.buildOrderCount || 1;
     orders.push({ type, pos, queue: Memory.buildOrderCount++ });
     orders.sort(priorityStructureSort);
-    Memory.con[room.name] = orders;
+    Memory.rooms[room.name].con = orders;
     return true;
   },
 
   getCount(_room, filter) {
     const roomName = _room.name || _room; // accept either Room Object or String
-    let orders = Memory.con[roomName] || [];
+    const orders = Memory.rooms[roomName].con || [];
     let res = orders.map((x) => ({ structureType: x.type }));
     res = _.filter(res, filter);
 
@@ -88,7 +88,7 @@ const BuildOrders = {
   },
   getAllScheduled(_room) {
     const roomName = _room.name || _room; // accept either Room Object or String
-    const orders = Memory.con[roomName] || [];
+    const orders = Memory.rooms[roomName].con || [];
     return orders.map((x) => ({
       type: x.type,
       pos: RoomPosition.deserialize(x.pos),
@@ -97,7 +97,7 @@ const BuildOrders = {
 
   getScheduledAt(room, _pos, type) {
     // type is optional
-    const orders = Memory.con[room.name] || [];
+    const orders = Memory.rooms[room.name].con || [];
     const pos = _pos.serialize();
     const result = orders.find((x) => x.pos === pos);
     if (type === undefined || type === result.type) {
@@ -123,7 +123,8 @@ const BuildOrders = {
   },
 
   execute(room) {
-    if (!Memory.con[room.name] || !Memory.con[room.name].length) return;
+    const orders = Memory.rooms[room.name].con;
+    if (!orders || !orders.length) return;
 
     // check max number of constucture sites
     // are there enough build orders right now?
@@ -133,7 +134,6 @@ const BuildOrders = {
       return 0;
     }
 
-    const orders = Memory.con[room.name];
     let howmany = 0;
 
     while (
