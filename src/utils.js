@@ -53,10 +53,11 @@ const FREE_ENTRY = { type: FREE, range: 0 };
 const DISQUALIFIED_ENTRY = { type: FREE_BUT_DISQUALIFIED, range: 0 };
 const OCCUPIED_ENTRY = { type: OCCUPIED, range: 0 };
 
-function _gc(domain) {
-  for (let name in Memory[domain]) {
-    if (!Game[domain][name]) {
-      delete Memory[domain][name];
+function _gc(memoryDomain, gameDomain) {
+  gameDomain = gameDomain || memoryDomain;
+  for (let name in Memory[memoryDomain]) {
+    if (!Game[gameDomain][name]) {
+      delete Memory[memoryDomain][name];
     }
   }
 }
@@ -300,7 +301,7 @@ const utils = {
     _gc('spawns');
     _gc('creeps');
     _gc('rooms');
-    _gc('towers');
+    _gc('towers', 'structures');
     _gc('flags');
     for (let name in Game.flags) {
       let flag = Game.flags[name];
