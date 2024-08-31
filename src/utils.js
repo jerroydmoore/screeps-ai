@@ -53,6 +53,13 @@ const FREE_ENTRY = { type: FREE, range: 0 };
 const DISQUALIFIED_ENTRY = { type: FREE_BUT_DISQUALIFIED, range: 0 };
 const OCCUPIED_ENTRY = { type: OCCUPIED, range: 0 };
 
+function _gc(domain) {
+  for (let name in Memory[domain]) {
+    if (!Game[domain][name]) {
+      delete Memory[domain][name];
+    }
+  }
+}
 const utils = {
   getNearby: function (room, pos, range, asArray = true) {
     let top = utils.correctInvalidCoord(pos.y - range),
@@ -290,16 +297,12 @@ const utils = {
     });
   },
   gc: function () {
-    for (let name in Memory.creeps) {
-      if (!Game.creeps[name]) {
-        delete Memory.creeps[name];
-      }
-    }
-    for (let name in Memory.flags) {
-      if (!Game.flags[name]) {
-        delete Memory.flags[name];
-        continue;
-      }
+    _gc('spawns');
+    _gc('creeps');
+    _gc('rooms');
+    _gc('towers');
+    _gc('flags');
+    for (let name in Game.flags) {
       let flag = Game.flags[name];
       if (flag.color === COLOR_BLUE) {
         let phase;
