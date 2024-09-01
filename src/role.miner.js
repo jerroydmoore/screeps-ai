@@ -19,26 +19,26 @@ class RoleMiners extends CreepsBase {
       // sourceId will persist
       // console.log(`${creep} running ${creep.memory.sourceId} ${typeof creep.memory.sourceId}`);
 
+      // initialize code
       if (!creep.memory.sourceId) {
-        let room = creep.room,
-          list = Object.keys(room.memory.sMiners);
+        const room = creep.room;
 
-        for (let idx in list) {
-          let sId = list[idx];
-          let minerId = room.memory.sMiners[sId];
+        // type(room.memory.sMiners) = sourceId: creepId
+        for (let sourceId in room.memory.sMiners) {
+          let otherMinerId = room.memory.sMiners[sourceId];
 
-          // console.log(`is set? ${minerId} - ${Game.getObjectById(minerId)}`);
-          // Miner might have died. Check if the id still resolves.
-          if (minerId && Game.getObjectById(minerId)) continue;
-
-          room.memory.sMiners[sId] = creep.id;
-          creep.memory.sourceId = sId;
-          break;
+          // get a source without valid assignment; e.g. previous miner died.
+          if (!otherMinerId || !Game.getObjectById(otherMinerId)) {
+            room.memory.sMiners[sourceId] = creep.id;
+            creep.memory.sourceId = sourceId;
+            break;
+          }
         }
       }
 
+      // seek to location
       let source;
-      if (!creep.memory.isReady) {
+      if (!creep.memory.isInPosition) {
         let containerPos;
         if (!creep.memory.pos) {
           source = Game.getObjectById(creep.memory.sourceId);
@@ -59,14 +59,15 @@ class RoleMiners extends CreepsBase {
           containerPos = RoomPosition.deserialize(creep.memory.pos);
         }
         if (creep.pos.equals(containerPos)) {
-          creep.memory.isReady = true;
+          creep.memory.isInPosition = true;
           delete creep.memory.pos;
         } else {
           this.travelTo(creep, containerPos, '#ffaa00', true);
         }
       }
 
-      if (creep.memory.isReady) {
+      // act
+      if (creep.memory.isInPosition) {
         if (!source) {
           source = Game.getObjectById(creep.memory.sourceId);
         }

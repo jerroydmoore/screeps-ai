@@ -16,13 +16,9 @@ module.exports = function (phaseNumber) {
     }
   }
 
-  if (!Memory.decon) Memory.decon = {};
-  if (!Memory.con) Memory.con = {};
   if (!Memory.rooms) Memory.rooms = {};
   for (let roomName in Game.rooms) {
-    if (!Memory.rooms[roomName]) {
-      Memory.rooms[roomName] = RoomUtils.getInitialData(roomName);
-    }
+    RoomUtils.initialize(roomName);
   }
   if (!Memory.towers) Memory.towers = {};
 };

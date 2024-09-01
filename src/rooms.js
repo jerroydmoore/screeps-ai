@@ -1,15 +1,7 @@
-const EXIT_NAME = {
-  [FIND_EXIT_TOP]: 'FIND_EXIT_TOP',
-  [FIND_EXIT_LEFT]: 'FIND_EXIT_LEFT',
-  [FIND_EXIT_BOTTOM]: 'FIND_EXIT_BOTTOM',
-  [FIND_EXIT_RIGHT]: 'FIND_EXIT_RIGHT',
-};
-
 let _lowHealthStructs = {};
 let _unhealthyWallsAndRamparts = {};
 
 module.exports = {
-  EXIT_NAME: EXIT_NAME,
   EXITS: [FIND_EXIT_TOP, FIND_EXIT_RIGHT, FIND_EXIT_BOTTOM, FIND_EXIT_LEFT],
 
   gc(force) {
@@ -19,32 +11,35 @@ module.exports = {
     }
   },
 
-  getInitialData(roomName) {
-    //console.log(`${roomName} ` + JSON.stringify(Memory.rooms[roomName]));
-    let data = { roomName: roomName, exits: {}, sMiners: {} };
-    let exits = Game.map.describeExits(roomName);
-    this.EXITS.forEach((exitDir) => {
-      let isConnected = !!exits[exitDir];
+  initialize(roomName) {
+    let data = Memory.rooms[roomName] || {};
 
-      if (isConnected) {
-        let name = exits[exitDir];
-        if (Memory.rooms[name]) {
-          data.exits[exitDir] = name;
+    data.phase = data.phase || 1;
+
+    if (data.exits === undefined) {
+      data.exits = {
+        [FIND_EXIT_TOP]: false,
+        [FIND_EXIT_LEFT]: false,
+        [FIND_EXIT_BOTTOM]: false,
+        [FIND_EXIT_RIGHT]: false,
+      };
+      const exits = Game.map.describeExits(roomName);
+      for (const direction in Object.keys(exits)) {
+        const otherRoomName = exits[direction];
+        if (Memory.rooms[otherRoomName]) {
+          data.exits[direction] = otherRoomName;
         } else {
-          data.exits[exitDir] = true;
+          data.exits[direction] = true;
         }
-      } else {
-        data.exits[exitDir] = false;
       }
-    });
-    Game.rooms[roomName].find(FIND_SOURCES).forEach((source) => {
-      data.sMiners[source.id] = 0;
-    });
-    data.phase = 1;
-    data.lastChecked = Game.time;
-    // TODO determine if it's neutral. Say/Mark it on the world map.
-    // creep.signController(controller, text)
-    // console.log(JSON.stringify(data));
+    }
+
+    if (data.sMinors == undefined) {
+      data.sMiners = {};
+      Game.rooms[roomName].find(FIND_SOURCES).forEach((source) => {
+        data.sMiners[source.id] = 0;
+      });
+    }
     return data;
   },
 
